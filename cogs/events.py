@@ -14,13 +14,13 @@ class Events(commands.Cog):
     print(f"{self.bot.user.id}")
     if os.name == "posix": # Herokuで起動されていれば
       login_notice_ch = self.bot.get_channel(769174714538786847)
-      login_notice_ch.send(f"{self.user} がログインしたよ！")
+      login_notice_ch.send(f"{self.bot.user} がログインしたよ！")
   
   @commands.Cog.listener()
   async def on_message(self, message):
     dm_ch = self.bot.get_channel(771654931941425163)
     if isinstance(message.channel, discord.DMChannel):
-      if message.author.id not in (self.bot.user.id, 481027469202423808) or True:
+      if message.author.id not in (self.bot.user.id, 481027469202423808):
         
         embed = discord.Embed(description=message.content, timestamp=message.created_at)
         icon = message.author.avatar_url_as()
