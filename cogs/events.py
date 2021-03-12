@@ -14,7 +14,7 @@ class Events(commands.Cog):
     print(f"{self.bot.user.id}")
     if os.name == "posix": # Herokuで起動されていれば
       login_notice_ch = self.bot.get_channel(769174714538786847)
-      login_notice_ch.send(f"{self.bot.user} がログインしたよ！")
+      await login_notice_ch.send(f"{self.bot.user} がログインしたよ！")
   
   @commands.Cog.listener()
   async def on_message(self, message):
