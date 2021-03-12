@@ -2,7 +2,19 @@ from discord.ext import commands
 import discord
 import os
 
-bot = commands.Bot(command_prefix="s/")
+class SumireBot(commands.Bot):
+  def __init__(self):
+    intents = discord.Intents.all()
+    super().__init__(command_prefix="s/", intents=intents)
+    for cog in ("cogs.commands", "cogs.events", "jishaku"):
+      self.load_extension(cog)
+  
+  def run(self):
+    TOKEN = os.getenv("sumire_bot_token")
+    super().run(TOKEN)
+  
 
-TOKEN = os.getenv("sumire_bot_token")
-bot.run(TOKEN)
+
+if __name__ == "__main__":
+  bot = SumireBot()
+  bot.run()
