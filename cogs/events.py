@@ -1,6 +1,8 @@
 from discord.ext import commands
 import discord
 import os
+from datetime import datetime
+import asyncio
 import traceback
 import io
 
@@ -15,6 +17,11 @@ class Events(commands.Cog):
     if os.name == "posix": # Herokuで起動されていれば
       login_notice_ch = self.bot.get_channel(769174714538786847)
       await login_notice_ch.send(f"{self.bot.user} がログインしたよ！")
+    
+    now = datetime.now()
+    wait_time = 60 - (now.second + now.microsecond/10**6)
+    await asyncio.sleep(wait_time)
+    self.bot.cogs["Loops"].minutely.start() # 00秒ちょうどにループを開始
   
   @commands.Cog.listener()
   async def on_message(self, message):
@@ -46,7 +53,7 @@ class Events(commands.Cog):
       await ctx.send("引数が足りないみたいですよ！")
     elif isinstance(error, commands.BadArgument):
       await ctx.send("おかしな引数が紛れ込んでいるみたい…")
-    elif isinstance(error, (commands.MissingPermissions, commands.CheckFailure, commands.NotOwner)):
+    elif isinstance(error, (commands.MissingPermissions, commands.NotOwner)):
       await ctx.send("あなたがこのコマンドを使うなんて127年早い！")
 
     else:
@@ -57,11 +64,11 @@ class Events(commands.Cog):
       if hasattr(ctx.guild, "name"):
         report_embed.add_field(name="Guild", value=ctx.guild.name)
       if hasattr(ctx.channel, "name"):
-        report_embed.add_filed(name="Channel", value=ctx.channel.name)
+        report_embed.add_field(name="Channel", value=ctx.channel.name)
       report_embed.add_field(name="Author", value=ctx.author.name)
-      report_embed.add_field(name="Content", value=ctx.message.content, inline=True)
+      report_embed.add_field(name="Content", value=ctx.message.content)
       report_embed.add_field(name="MessageURL", value=ctx.message.jump_url)
-      report_embed.add_field(name="Traceback", value="".join(error_tb.format()))
+      report_embed.add_field(name="Traceback", value="".join(error_tb.format()), inline=False)
       report_ch = ctx.bot.get_channel(782423473569660969)
       await report_ch.send(embed=report_embed)
 

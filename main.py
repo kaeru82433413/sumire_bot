@@ -6,7 +6,7 @@ class SumireBot(commands.Bot):
   def __init__(self):
     intents = discord.Intents.all()
     super().__init__(command_prefix="s/", intents=intents)
-    for cog in ("cogs.commands", "cogs.events", "jishaku"):
+    for cog in ("cogs.commands", "cogs.events", "cogs.loops", "jishaku"):
       self.load_extension(cog)
   
   def run(self):

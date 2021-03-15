@@ -1,8 +1,6 @@
 from discord.ext import commands
 import discord
 
-def bot_owner(ctx):
-  return ctx.bot.is_owner(ctx.author)
 
 class Commands(commands.Cog):
   def __init__(self, bot):
@@ -12,11 +10,14 @@ class Commands(commands.Cog):
   @commands.has_permissions(administrator=True)
   async def remove(self, ctx, limit: int=1):
     async for message in ctx.history(limit=limit+1):
-      await message.delete()
+      try:
+        await message.delete()
+      except discord.NotFound:
+        break
   
-  @commands.command()
-  @commands.check(bot_owner)
-  async def db(self, ctx, sentence):
+  @commands.command(aliases=["db", "sql"])
+  @commands.is_owner()
+  async def database(self, ctx, sentence):
     pass
 
 def setup(bot):
