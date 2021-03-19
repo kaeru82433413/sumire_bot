@@ -1,9 +1,12 @@
 from discord.ext import commands
 import discord
+import os
 import re
 import requests
 import bisect
 import seichi
+import psycopg2
+
 
 class Commands(commands.Cog):
   def __init__(self, bot):
@@ -71,7 +74,11 @@ class Commands(commands.Cog):
   @commands.command(aliases=["db", "sql"])
   @commands.is_owner()
   async def database(self, ctx, sentence):
-    pass
+    res = self.bot.postgres(sentence)
+    if res is None:
+      await ctx.message.add_reaction("✅")
+    else:
+      await ctx.send(res)
 
 def setup(bot):
   bot.add_cog(Commands(bot))
