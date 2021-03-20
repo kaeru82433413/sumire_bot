@@ -6,10 +6,16 @@ import psycopg2
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+def dynamic_prefix(bot, message):
+  prefixes = ["s/", "!"]
+  if "コマンド" in getattr(message.channel, "name", ""):
+    prefixes.append("")
+  return prefixes
+
 class SumireBot(commands.Bot):
   def __init__(self):
     intents = discord.Intents.all()
-    super().__init__(command_prefix="s/", intents=intents)
+    super().__init__(command_prefix=dynamic_prefix, intents=intents)
     for cog in ("cogs.commands", "cogs.events", "cogs.loops", "jishaku"):
       self.load_extension(cog)
   
