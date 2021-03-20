@@ -44,9 +44,8 @@ class Commands(commands.Cog):
       await ctx.send("該当データが見つかりませんでした")
       return
 
-    embed = discord.Embed(title=f'{seichi_res_json[0]["player"]["name"]}のデータ')
+    embed = discord.Embed(title=f'{seichi_res_json[0]["player"]["name"]}のランキングデータ')
     for data_type, data in zip(types, seichi_res_json):
-      value = f'{data["rank"]}位  '
       int_data = int(data["data"]["raw_data"])
 
       if data_type == "break":
@@ -54,19 +53,19 @@ class Commands(commands.Cog):
           level = f"Lv200☆{int_data//87115000}"
         else:
           level = f"Lv{bisect.bisect(seichi.BREAK_LEVEL, int_data)}"
-        value += f'{int_data:,} ({level})'
+        value = f'{int_data:,} ({level})'
       
       elif data_type == "build":
-        value += f'{int_data:,} (Lv{bisect.bisect(seichi.BUILD_LEVEL, int_data)})'
+        value = f'{int_data:,} (Lv{bisect.bisect(seichi.BUILD_LEVEL, int_data)})'
       
       elif data_type == "playtime":
         time_data = data["data"]["data"]
-        value += f'{time_data["hours"]}時間{time_data["minutes"]}分{time_data["seconds"]}秒'
+        value = f'{time_data["hours"]}時間{time_data["minutes"]}分{time_data["seconds"]}秒'
       
       elif data_type == "vote":
-        value += f'{int_data:,}'
+        value = f'{int_data:,}'
 
-      embed.add_field(name=TYPE_CNDS[data_type], value=value)
+      embed.add_field(name=f'{TYPE_CNDS[data_type]} {data["rank"]}位', value=value)
     embed.set_footer(text=f'Last quit：{seichi_res_json[0]["lastquit"]}')
     await ctx.send(embed=embed)
 
@@ -76,7 +75,7 @@ class Commands(commands.Cog):
   async def database(self, ctx, sentence):
     res = self.bot.postgres(sentence)
     if res is None:
-      await ctx.message.add_reaction("✅")
+      await ctx.message.add_reaction("\N{White Heavy Check Mark}")
     else:
       await ctx.send(res)
 

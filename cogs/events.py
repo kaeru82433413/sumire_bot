@@ -19,15 +19,27 @@ class Events(commands.Cog):
       await login_notice_ch.send(f"{self.bot.user} がログインしたよ！")
     
     now = datetime.now()
-    wait_time = 60 - (now.second + now.microsecond/10**6)
+    wait_time = 60 - (now.second + now.microsecond*10**-6)
     await asyncio.sleep(wait_time)
     self.bot.cogs["Loops"].minutely.start() # 00秒ちょうどにループを開始
   
   @commands.Cog.listener()
   async def on_message(self, message):
-    dm_ch = self.bot.get_channel(771654931941425163)
+    guild = message.guild
+
+    mentioned = False
+    if self.bot.user in message.mentions: # ユーザーにメンションされたらTrue
+      mentioned = True
+    else:
+      if isinstance(guild, discord.Guild):
+        if set(guild.get_member(self.bot.user.id).roles) & set(message.role_mentions):  # 役職にメンションされたらTrue
+          mentioned = True
+    if mentioned:
+      await message.add_reaction("\N{Eyes}")
+
     if isinstance(message.channel, discord.DMChannel):
-      if message.author.id not in (self.bot.user.id, 481027469202423808):
+      if message.author.id not in (self.bot.user.id, 481027469202423808): # bot自身, かえるさん#0785 のメッセージは除く
+        dm_ch = self.bot.get_channel(771654931941425163)
         
         embed = discord.Embed(description=message.content, timestamp=message.created_at)
         icon = message.author.avatar_url_as()
