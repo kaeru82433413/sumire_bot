@@ -45,7 +45,7 @@ class Commands(commands.Cog):
       await ctx.send("該当データが見つかりませんでした")
       return
 
-    embed = discord.Embed(title=f'{seichi_res_json[0]["player"]["name"]}のランキングデータ')
+    embed = discord.Embed(title=f'{seichi_res_json[0]["player"]["name"]}の整地鯖ランキングデータ')
     for data_type, data in zip(types, seichi_res_json):
       int_data = int(data["data"]["raw_data"])
 
@@ -72,7 +72,7 @@ class Commands(commands.Cog):
   
   @commands.command(name="calc")
   async def calc_cmd(self, ctx, *text):
-    text = " ".join(text)
+    text = " ".join(text).replace(r"\*", "*")
     try:
       expr = calc.Bracket(text)
     except TypeError as e:
@@ -115,9 +115,9 @@ class Commands(commands.Cog):
         break
 
     if value == 1:
-      await ctx.send(" * ".join(map(lambda x: f"{x[0]}^{x[1]}" if x[1]>1 else f"{x[0]}", factors)))
+      await ctx.send(" \* ".join(map(lambda x: f"{x[0]}^{x[1]}" if x[1]>1 else f"{x[0]}", factors)))
     else:
-      await ctx.send(f"1000,000より大きな素因数を含んでいるため計算できませんでした。({value}は素数でない可能性があります)\n" + " * ".join(map(lambda x: f"{x[0]}^{x[1]}" if x[1]>1 else f"{x[0]}", factors+[(value, 1)])))
+      await ctx.send(f"1000,000より大きな素因数を含んでいるため計算できませんでした。({value}は素数でない可能性があります)\n" + " \* ".join(map(lambda x: f"{x[0]}^{x[1]}" if x[1]>1 else f"{x[0]}", factors+[(value, 1)])))
 
   @commands.command(aliases=["db", "sql"])
   @commands.is_owner()

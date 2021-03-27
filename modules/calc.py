@@ -108,7 +108,7 @@ class Bracket:
 
 def expression(allow_decimal=False):
   def converter(text):
-    value = Bracket(text).calc()
+    value = Bracket(text.replace(r"\*", "*")).calc()
     if not allow_decimal and isinstance(value, float):
       raise ValueError
     return value
