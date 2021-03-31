@@ -8,7 +8,7 @@ import seichi_data
 
 class Seichi(commands.Cog, name="seichi"):
   """
-  整地鯖の関するコマンド
+  整地鯖に関するコマンド
   """
   def __init__(self, bot):
     self.bot = bot
