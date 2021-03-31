@@ -62,15 +62,17 @@ class Events(commands.Cog):
     if isinstance(error, commands.CommandNotFound):
       pass
     elif isinstance(error, commands.ArgumentParsingError):
-      await ctx.send("引数をうまく解析できませんでした")
+      await ctx.send("引数を解析できませんでした")
     elif isinstance(error, commands.MissingRequiredArgument):
       await ctx.send("引数が足りないみたいですよ！")
     elif isinstance(error, commands.BadArgument):
       await ctx.send("おかしな引数が紛れ込んでいるみたい…")
     elif isinstance(error, (commands.MissingPermissions, commands.NotOwner)):
       await ctx.send("あなたがこのコマンドを使うなんて127年早い！")
-
+    elif isinstance(error, commands.CheckFailure):
+      await ctx.send("ここでは使えません")
     else:
+
       error = getattr(error, "original", error)
       error_tb = traceback.TracebackException.from_exception(error)
 
@@ -83,17 +85,17 @@ class Events(commands.Cog):
       report_embed.add_field(name="Content", value=ctx.message.content)
       report_embed.add_field(name="MessageURL", value=ctx.message.jump_url)
       tb_format = "".join(error_tb.format())
-      if len(tb_format) > 1024:
+      if len(tb_format) > 1000:
         traceback_file = discord.File(io.BytesIO(tb_format.encode()), filename="traceback.txt")
       else:
-        report_embed.add_field(name="Traceback", value=tb_format, inline=False)
+        report_embed.add_field(name="Traceback", value=discord.utils.escape_markdown(tb_format), inline=False)
         traceback_file = None
 
       report_ch = ctx.bot.get_channel(782423473569660969)
       await report_ch.send(embed=report_embed, file=traceback_file)
 
-      error_embed = discord.Embed(title="想定外のエラー")
-      error_embed.description = "".join(error_tb.format_exception_only()) + "開発者に報告しました。修正をお待ちください"
+      error_embed = discord.Embed(title="エラーが発生しました")
+      error_embed.description = discord.utils.escape_markdown("".join(error_tb.format_exception_only())) + "開発者に報告しました。修正をお待ちください"
       await ctx.send(embed=error_embed)
 
 def setup(bot):

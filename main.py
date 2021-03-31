@@ -1,5 +1,6 @@
 from discord.ext import commands
 import discord
+from cogs.help_command import SumireBotHelp
 import os
 from traceback import TracebackException
 import psycopg2
@@ -7,23 +8,28 @@ import psycopg2
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 def dynamic_prefix(bot, message):
+  if os.name=="nt": # ローカル起動時のデバッグ用
+    return ("?",)
+
   prefixes = ["s/", "!"]
   if "コマンド" in getattr(message.channel, "name", ""):
     prefixes.append("")
   return prefixes
 
+
 class SumireBot(commands.Bot):
   def __init__(self):
     intents = discord.Intents.all()
-    super().__init__(command_prefix=dynamic_prefix, intents=intents)
-    for cog in ("cogs.commands", "cogs.events", "cogs.loops", "jishaku"):
+    super().__init__(command_prefix=dynamic_prefix, intents=intents, help_command=SumireBotHelp())
+    cogs = ["cogs.commands.general", "cogs.commands.seichi", "cogs.commands.test", "cogs.commands.admin", "cogs.commands.owner",
+            "cogs.events", "cogs.loops", "jishaku"]
+    for cog in cogs:
       self.load_extension(cog)
   
   def run(self):
     TOKEN = os.getenv("sumire_bot_token")
     super().run(TOKEN)
   
-
   @staticmethod
   def postgres(sentence, params=()):
     with psycopg2.connect(DATABASE_URL) as conn:
