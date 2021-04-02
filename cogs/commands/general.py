@@ -13,7 +13,7 @@ class General(commands.Cog, name="general"):
     self.bot = bot
   
   @commands.command(name="calc")
-  async def calc_cmd(self, ctx, *text):
+  async def calc_cmd(self, ctx, *, text):
     """
     数式を計算します
     数値の整数部分にはカンマを含めることができます。例：82,433,413
@@ -22,11 +22,11 @@ class General(commands.Cog, name="general"):
     数値の各記号の間には任意の空白文字を挿入しても構いません。例：( 40 - 20 ) * 10
     abs, floor, ceil, sin, cos, tan, radian, degreeの8つの関数が使えます
     例：sin(radian(45))
-    tick, sec, min, hour, day, st, c, lc, chunk, unit, star, k, m, g, %, pi, radian, degreeの18個の単位が使えます
+    tick, sec, min, hour, day, st, c, lc, chunk, unit, star, k, m, g, %, pi, radian, degreeの18個の単位が使えます。直前の値を定数倍します
     使用例：1day/30min
     <*expression*>
     """
-    text = " ".join(text).replace(r"\*", "*")
+    text = text.replace(r"\*", "*")
     try:
       expr = calc.Bracket(text)
     except TypeError as e:
@@ -46,12 +46,12 @@ class General(commands.Cog, name="general"):
   async def math_cmd(self, ctx):
     """
     様々な計算を行います
-    引数にはcalcコマンドと同様の数式が使用できます
+    各コマンドの引数にはcalcコマンドと同様の数式が使用できますが、引数を複数受け取るコマンドは空白文字で区切られます
     """
     await ctx.send_help(ctx.command)
   
   @math_cmd.command(aliases=["pf", "primefactorization"])
-  async def prime_factorization(self, ctx, *,value: expression("natural")):
+  async def prime_factorization(self, ctx, *, value: expression("natural")):
     """
     素因数分解を行います
     2以上を整数を指定してください
