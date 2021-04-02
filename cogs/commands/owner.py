@@ -19,7 +19,7 @@ class Owner(commands.Cog, name="owner"):
   async def database(self, ctx, sentence):
     """
     DBにクエリを送ります
-    <query>
+    <*query*>
     """
     res = self.bot.postgres(sentence)
     if res is None:

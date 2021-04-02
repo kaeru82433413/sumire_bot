@@ -20,7 +20,7 @@ class Admin(commands.Cog, name="admin"):
   async def remove(self, ctx, limit: int=1):
     """
     使用チャンネルのメッセージを削除します
-    <limit>
+    <*limit*>
     """
     async for message in ctx.history(limit=limit+1):
       try:

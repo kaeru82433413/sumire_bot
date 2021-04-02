@@ -19,7 +19,7 @@ class Seichi(commands.Cog, name="seichi"):
     """
     指定したプレイヤーの整地鯖のランキング情報を取得します
     typesはbreak, build, playtime, voteの4つが選択可能で、有効な値が渡されなかった場合はbreakを取得します
-    <mcid> [types…]
+    <*mcid*> [*types*…]
     """
     if not re.fullmatch(r"\w{3,16}", player):
       await ctx.send("mcidは3~16文字のアルファベット、数字、アンダーバーで指定してください")

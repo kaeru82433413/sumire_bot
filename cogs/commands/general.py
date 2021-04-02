@@ -1,6 +1,7 @@
 from discord.ext import commands
 import discord
 import os
+import math
 import calc
 from calc import expression
 
@@ -15,7 +16,15 @@ class General(commands.Cog, name="general"):
   async def calc_cmd(self, ctx, *text):
     """
     数式を計算します
-    <expression>
+    数値の整数部分にはカンマを含めることができます。例：82,433,413
+    数値指数表記ができます。例：3.402823e+38
+    +-*/の四則演算に加えて、^のべき乗が使えます。例：2^31-1
+    数値の各記号の間には任意の空白文字を挿入しても構いません。例：( 40 - 20 ) * 10
+    abs, floor, ceil, sin, cos, tan, radian, degreeの8つの関数が使えます
+    例：sin(radian(45))
+    tick, sec, min, hour, day, st, c, lc, chunk, unit, star, k, m, g, %, pi, radian, degreeの18個の単位が使えます
+    使用例：1day/30min
+    <*expression*>
     """
     text = " ".join(text).replace(r"\*", "*")
     try:
@@ -37,19 +46,19 @@ class General(commands.Cog, name="general"):
   async def math_cmd(self, ctx):
     """
     様々な計算を行います
+    引数にはcalcコマンドと同様の数式が使用できます
     """
     await ctx.send_help(ctx.command)
   
   @math_cmd.command(aliases=["pf", "primefactorization"])
-  async def prime_factorization(self, ctx, value: expression()):
+  async def prime_factorization(self, ctx, *,value: expression("natural")):
     """
     素因数分解を行います
     2以上を整数を指定してください
-    <value>
+    <*value*>
     """
     if value < 2:
-      await ctx.send("2以上の値を指定してください")
-      return
+      raise commands.BadArgument
     
     factors = []
     for i in range(2, min(value, 10**6)+1):
@@ -71,6 +80,23 @@ class General(commands.Cog, name="general"):
     else:
       await ctx.send(f"1000,000より大きな素因数を含んでいるため計算できませんでした。({value}は素数でない可能性があります)\n" + " \* ".join(map(lambda x: f"{x[0]}^{x[1]}" if x[1]>1 else f"{x[0]}", factors+[(value, 1)])))
 
+  @math_cmd.command()
+  async def gcd(self, ctx, *values: expression("natural")):
+    """
+    引数の最大公約数を求めます
+    引数は自然数でなくてはいけません
+    [*values*…]
+    """
+    await ctx.send(math.gcd(*values))
+
+  @math_cmd.command()
+  async def lcm(self, ctx, *values: expression("natural")):
+    """
+    引数の最小公倍数を求めます
+    引数は自然数でなくてはいけません
+    [*values*…]
+    """
+    await ctx.send(math.lcm(*values))
 
 
 def setup(bot):

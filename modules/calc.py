@@ -1,128 +1,180 @@
 from fractions import Fraction
-from operator import add, sub, mul, truediv, pow
 import re
+import operator as op
+import math
+from copy import copy
 
-UNITS = {"tick": Fraction("0.05"), "sec": 1, "min": 60, "hour": 60*60, "day": 60*60*24, "st": 64, "lc": 3456, "chunk": 16**2, "unit": 15**2, "star": 87115000, "k": 1000, "m":1000_000, "g":1000_000_000, "%": Fraction("0.01")}
+UNITS = {"tick": Fraction("0.05"), "sec": 1, "min": 60, "hour": 60*60, "day": 60*60*24,
+         "st": 64, "lc": 3456, "chunk": 16**2, "unit": 15**2, "star": 87115000,
+         "k": 1000, "m":1000_000, "g":1000_000_000, "%": Fraction("0.01"),
+         "pi": Fraction(math.pi), "radian": Fraction(math.pi/180), "degree": Fraction(180/math.pi)}
+RE_UNITS = "|".join(sorted(UNITS, key=len, reverse=True))
+RE_NUMBER = fr'\d(\,?\d)*(.\d+)?(e[\+\-]?\d+)?'
+FUNCTIONS = {"abs": abs, "floor": math.floor, "ceil": math.ceil, "sin": math.sin, "cos": math.cos, "tan": math.tan, "radian": math.radians, "degree": math.degrees}
+RE_FUNCTIONS = "|".join(sorted(FUNCTIONS, key=len, reverse=True))
+RE_BRACKET = fr'\s*((\s*[\+\-])?((\s*({RE_FUNCTIONS}))?\s*\()?)*(\s*[\+\-])*\s*{RE_NUMBER}({RE_UNITS})?(\s*\)({RE_UNITS})?)*'
+RE_EXPRESSION = fr'{RE_BRACKET}(\s*[\+\-\*/\^]{RE_BRACKET})*\s*'
+OPERATORS = {"+": op.iadd, "-": op.isub, "*": op.imul, "/": op.itruediv, "^": op.ipow}
+
+class UnionFind(list):
+  def __init__(self, n):
+    self.extend(range(n))
+  
+  def union(self, a, b):
+    if not a < b:
+      a, b = b, a
+    self[b] = a
+  
+  def __getitem__(self, index):
+    chs = set()
+    while index != super().__getitem__(index):
+      chs.add(index)
+      index = super().__getitem__(index)
+    for ch in chs:
+      self[ch] = index
+    return index
 
 class Value:
-  def __init__(self, raw, reverse=False):
-    self.minus = False
-    if isinstance(raw, Fraction):
-      self.value = raw
-      self.minus = self.minus ^ reverse
-    else:
-      for i, t in enumerate(raw):
-        if t in "+-":
-          if t == "-":
-            self.minus = not self.minus
-        else:
-          break
-      if "(" in raw:
-        self.value = Bracket(raw[i+1:-1])
-      else:
-        for unit in sorted(UNITS, key=len, reverse=True):
-          if raw.endswith(unit):
-            self.value = Fraction(raw[i:-len(unit)]) * UNITS[unit]
-            break
-        else:
-          self.value = Fraction(raw[i:])
+  def __init__(self, value):
+    sign = re.match(r"[+-]*", value)
+    self.sign = 1
+    if sign.group().count("-")%2:
+      self.sign *= -1
+    value = value[sign.end():]
 
-  def get(self, absolute=False):
-    return ((self.minus * (not absolute))*-2+1) * (self.value if isinstance(self.value, Fraction) else self.value.calc(True))
+    unit = re.search(fr"({RE_UNITS})?$", value)
+    value = value[:unit.start()]
+    unit = UNITS.get(unit.group(), 1)
+
+    if re.match(fr"({RE_FUNCTIONS})?\(", value):
+      function = re.match(fr"({RE_FUNCTIONS})?", value)
+      value = value[function.end()+1:-1]
+      self.value = Bracket(value, function=FUNCTIONS.get(function.group()), unit=unit)
+    else:
+      self.value = Fraction(value)
+      self.value *= unit
+  
+  def get(self):
+    if isinstance(self.value, Bracket):
+      return self.value.calc(True) * self.sign
+    else:
+      return self.value * self.sign
+  
+  def __iadd__(self, other):
+    self.value += other.get() * self.sign
+  
+  def __isub__(self, other):
+    self.value -= other.get() * self.sign
+
+  def __imul__(self, other):
+    self.value *= other.get() * self.sign
+
+  def __itruediv__(self, other):
+    self.value /= other.get() * self.sign
+  
+  def __ipow__(self, other):
+    if isinstance(self.value, Bracket):
+      self.value = self.value.calc()
+    if self.get() < 0 and other.get().denominator!=1:
+      raise ValueError("基数が負の数かつ指数が小数の計算はできません")
+    self.value **= other.get()
 
   def __repr__(self):
-    return f"{self.minus} {self.value}"
+    return f"{self.__class__.__name__}({self.value}*{self.sign})"
 
 class Bracket:
-  def __init__(self, text):
-#    if not re.fullmatch(fr'(\(?[\+\-]?)*\d(,?\d)*(\.\d+)?({"|".join(UNITS)})?\)*([\+\-\*/\^](\(?[\+\-]?)*\d(,?\d)*(\.\d+)?({"|".join(UNITS)})?\)*)*', text):
-    if not re.fullmatch(fr'( *\(? *[\+\-]?)*\d(,?\d)*(\.\d+)?({"|".join(UNITS)})?( *\))*( *[\+\-\*/\^]( *\(? *[\+\-]?)*\d(,?\d)*(\.\d+)?({"|".join(UNITS)})?( *\))*)* *', text):
+  def __init__(self, value, function=None, unit=1):
+    value = value.lower()
+    if not re.fullmatch(RE_EXPRESSION, value):
       raise TypeError("数式のフォーマットが正しくありません")
-    text = text.replace(" ", "").replace(",", "")
     brackets = 0
-    for t in text:
+    for t in value:
       if t == "(":
         brackets += 1
       elif t == ")":
         brackets -= 1
         if brackets < 0:
-          raise TypeError("括弧の数が一致しません")
+          raise TypeError("括弧の配置が正しくありません")
     if brackets > 0:
-      raise TypeError("括弧の数が一致しません")
+      raise TypeError("括弧の配置が正しくありません")
+    value = re.sub(r"[\s\,]", "", value)
 
+    self.function = function
+    self.unit = unit
     self.values = []
     self.operators = []
-    
-    value = ""
-    for t in text:
-      if brackets == 0:
-        if t == "(":
-          brackets += 1
-          value += t
-        elif t in "+-*/^" and value and value[-1] not in "+-":
-          self.values.append(Value(value))
-          value = ""
-          self.operators.append({"+": add, "-": sub, "*": mul, "/": truediv, "^": pow}[t])
-        else:
-          value += t
-      else:
-        if t == "(":
-          brackets += 1
-        elif t == ")":
-          brackets -= 1
-        value += t
-    self.values.append(Value(value))
+    before = 0
+    brackets = 0
 
-  def calc(self, fraction=False):
-    for i, operator in reversed(list(enumerate(self.operators))):
-      if operator == pow:
-        if self.values[i].get(absolute=True)<0 and self.values[i+1].value%1:
-          raise ValueError("基数が負の数かつ指数が小数のべき乗は計算できません")
-        self.values[i] = Value(Fraction(pow(self.values[i].get(absolute=True), self.values[i+1].get())), self.values[i].minus)
-        del self.values[i+1], self.operators[i]
-    i = 0
-    while i < len(self.operators):
-      if self.operators[i] in (mul, truediv):
-        self.values[i] = Value(self.operators[i](*map(Value.get, self.values[i:i+2])))
-        del self.values[i+1], self.operators[i]
-      else:
-        i += 1
-    i = 0
-    while i < len(self.operators):
-      if self.operators[i] in (add, sub):
-        self.values[i] = Value(self.operators[i](*map(Value.get, self.values[i:i+2])))
-        del self.values[i+1], self.operators[i]
-      else:
-        i += 1
-    result = self.values[0].get()
-    if fraction:
-      return result
-    else:
-      if result.denominator == 1:
-        return result.numerator
-      else:
-        return float(result)
+    for i, t in enumerate(value):
+      if t in OPERATORS:
+        if brackets == 0 and before < i:
+          self.values.append(Value(value[before:i]))
+          self.operators.append(OPERATORS.get(t))
+          before = i+1
+      elif t == "(":
+        brackets += 1
+      elif t == ")":
+        brackets -= 1
+    self.values.append(Value(value[before:]))
   
-  def __str__(self):
-    return f"{self.values} {self.operators}"
+  def calc(self, fraction=False):
+    values = list(map(copy, self.values))
+    for i, value in enumerate(values):
+      if isinstance(value.value, Bracket):
+        value.value = value.value.calc()
+    operand = UnionFind(len(values))
 
-def expression(allow_decimal=False):
-  def converter(text):
-    value = Bracket(text.replace(r"\*", "*")).calc()
-    if not allow_decimal and isinstance(value, float):
+    for i, operator in reversed(list(enumerate(self.operators))): # べき乗は右結合なのでreversed
+      if operator is op.ipow:
+        operator(values[operand[i]], values[operand[i+1]])
+        operand.union(i, i+1)
+
+    for i, operator in enumerate(self.operators):
+      if operator in (op.imul, op.itruediv):
+        operator(values[operand[i]], values[operand[i+1]])
+        operand.union(i, i+1)
+
+    for i, operator in enumerate(self.operators):
+      if operator in (op.iadd, op.isub):
+        operator(values[operand[i]], values[operand[i+1]])
+        operand.union(i, i+1)
+
+    value = values[0].get()
+    if self.function is not None:
+      value = self.function(value)
+    if not isinstance(value, Fraction):
+      value = Fraction(value)
+    value *= self.unit
+    
+    if fraction: # 戻り値がFractionであることを要求されていれば
+      return value
+    else:
+      if value.denominator == 1: # 整数ならint
+        return value.numerator
+      else: # 整数にできないのであればfloat
+        return float(value)
+
+def expression(result_type="int"):
+  if result_type not in ("natural", "int", "float"):
+    raise ValueError
+
+  def converter(value):
+    result = Bracket(value.replace(r"\*", "*")).calc()
+
+    if result_type in ("natural", "int") and not isinstance(result, int):
       raise ValueError
-    return value
+    if result_type == "natural" and result < 1:
+      raise ValueError
+
+    return result
   return converter
 
 if __name__ == "__main__":
   try:
-    expr = Bracket(input())
-  except TypeError as e:
+    bracket = Bracket(input())
+    print(bracket.calc())
+  except (TypeError, ValueError) as e:
     print(e)
-    exit()
-  try:
-    print(expr.calc())
-  except ValueError as e:
-    print(e) 
   except ZeroDivisionError:
     print("ゼロ除算はできません")
