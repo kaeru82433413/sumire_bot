@@ -3,6 +3,7 @@ import discord
 import os
 import math
 import calc
+from functools import reduce
 from calc import expression
 
 class General(commands.Cog, name="general"):
@@ -96,7 +97,7 @@ class General(commands.Cog, name="general"):
     引数は自然数でなくてはいけません
     [*values*…]
     """
-    await ctx.send(math.lcm(*values))
+    await ctx.send(reduce(lambda a, b: a*b//math.gcd(a, b), values))
 
 
 def setup(bot):
