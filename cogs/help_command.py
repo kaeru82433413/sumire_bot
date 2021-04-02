@@ -68,7 +68,7 @@ class SumireBotHelp(commands.HelpCommand):
   async def send_group_help(self, group):
     help_embed = discord.Embed(title=self.parents_aliases(group), description=group.help)
     for subcommand in group.commands:
-      help_embed.add_field(name=subcommand.name, value=subcommand.short_doc)
+      help_embed.add_field(name=subcommand.name, value=subcommand.short_doc, inline=False)
     await self.get_destination().send(embed=help_embed)
   
 
