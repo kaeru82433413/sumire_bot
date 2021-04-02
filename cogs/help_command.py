@@ -73,8 +73,6 @@ class SumireBotHelp(commands.HelpCommand):
   
 
   async def send_command_help(self, command):
-    print(id(self))
-    
     help_embed = discord.Embed()
     help_embed.title = self.parents_aliases(command) + " " + command.help.rsplit("\n", 1)[1]
     help_embed.description = command.help.rsplit("\n", 1)[0]
