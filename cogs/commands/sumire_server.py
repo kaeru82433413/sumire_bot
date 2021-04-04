@@ -106,7 +106,7 @@ class SumireServer(commands.Cog, name="sumire"):
       return
     
     ranking_embed = discord.Embed(title=f"ポイントランキング ({page}/{(len(res)-1)//20+1}ページ)")
-    ranking_rows = [f"{i}位 {point}pt: {name} {_}" for i, (_, point, name) in enumerate(target_members, 1)]
+    ranking_rows = [f"{i}位 {point}pt: {name}}" for i, (_, point, name) in enumerate(target_members, 1)]
     ranking_embed.description = "\n".join(ranking_rows)
     await ctx.send(embed=ranking_embed)
   
