@@ -4,8 +4,6 @@ from cogs.help_command import SumireBotHelp
 import os
 from traceback import TracebackException
 from operator import attrgetter, itemgetter
-from typing import Union
-from collections.abc import Iterable
 import psycopg2
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -48,7 +46,7 @@ class SumireBot(commands.Bot):
         except psycopg2.ProgrammingError as e:
           return None
   
-  def get_nickname(self, member: Union[discord.Member, discord.User], name: Union[str, None]):
+  def get_nickname(self, member, name):
     if name is not None:
       return name
     else:
@@ -56,7 +54,7 @@ class SumireBot(commands.Bot):
         member = self.get_guild(504299765379366912).get_member(member.id)
       return member.display_name
 
-  def member_data(self, member: Union[discord.Member, discord.User], raw_name=False):
+  def member_data(self, member, raw_name=False):
     res = self.postgres("select * from members where id = %s", member.id)
     if not res:
       self.postgres("insert into members (id) values (%s)", member.id)
@@ -68,7 +66,7 @@ class SumireBot(commands.Bot):
       return res
     return res[:2] + (self.get_nickname(member, res[2]),)
 
-  def members_data(self, members: Iterable[Union[discord.Member, discord.User]], raw_name=False):
+  def members_data(self, members, raw_name=False):
     member_ids = tuple(map(attrgetter("id"), members))
     res = self.postgres("select * from members where id in %s", member_ids)
 
