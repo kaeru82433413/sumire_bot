@@ -69,6 +69,7 @@ class SumireBot(commands.Bot):
   def members_data(self, members, raw_name=False):
     member_ids = tuple(map(attrgetter("id"), members))
     res = self.postgres("select * from members where id in %s", member_ids)
+    membeds_dict = {member.id: member for member in members}
 
     for member_id in set(member_ids) - set(map(itemgetter(0), res)):
       self.postgres("insert into members (id) values (%s)", member_id)
@@ -76,7 +77,7 @@ class SumireBot(commands.Bot):
 
     if raw_name:
       return res
-    res = [(member_id, point, self.get_nickname(member, nickname)) for member, (member_id, point, nickname) in zip(members, res)]
+    res = [(member_id, point, self.get_nickname(membeds_dict[member_id], nickname)) for member_id, point, nickname in res]
     return res
 
 if __name__ == "__main__":
