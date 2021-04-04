@@ -3,6 +3,9 @@ import discord
 from cogs.help_command import SumireBotHelp
 import os
 from traceback import TracebackException
+from operator import attrgetter, itemgetter
+from typing import Union
+from collections.abc import Iterable
 import psycopg2
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -21,7 +24,7 @@ class SumireBot(commands.Bot):
   def __init__(self):
     intents = discord.Intents.all()
     super().__init__(command_prefix=dynamic_prefix, intents=intents, help_command=SumireBotHelp())
-    cogs = ["cogs.commands.general", "cogs.commands.seichi", "cogs.commands.test", "cogs.commands.admin", "cogs.commands.owner",
+    cogs = ["cogs.commands.general", "cogs.commands.sumire_server", "cogs.commands.seichi", "cogs.commands.test", "cogs.commands.admin", "cogs.commands.owner",
             "cogs.events", "cogs.loops", "jishaku"]
     for cog in cogs:
       self.load_extension(cog)
@@ -31,7 +34,7 @@ class SumireBot(commands.Bot):
     super().run(TOKEN)
   
   @staticmethod
-  def postgres(sentence, params=()):
+  def postgres(sentence, *params):
     with psycopg2.connect(DATABASE_URL) as conn:
       with conn.cursor() as cur:
         try:
@@ -44,15 +47,39 @@ class SumireBot(commands.Bot):
           return list(cur)
         except psycopg2.ProgrammingError as e:
           return None
-
-  @classmethod
-  def member_data(cls, member: discord.Member):
-    res = cls.postgres("select * from members where id = %s", (member.id,))
-    if not res:
-      cls.postgres("insert into members (id) values (%s)", (member.id,))
-      return (member.id, 0, None)
+  
+  def get_nickname(self, member: Union[discord.Member, discord.User], name: Union[str, None]):
+    if name is not None:
+      return name
     else:
+      if isinstance(member, discord.User):
+        member = self.get_guild(504299765379366912).get_member(member.id)
+      return member.display_name
+
+  def member_data(self, member: Union[discord.Member, discord.User], raw_name=False):
+    res = self.postgres("select * from members where id = %s", member.id)
+    if not res:
+      self.postgres("insert into members (id) values (%s)", member.id)
+      res = (member.id, 100, None)
+    else:
+      res = res[0]
+
+    if raw_name:
       return res
+    return res[:2] + (self.get_nickname(member, res[2]),)
+
+  def members_data(self, members: Iterable[Union[discord.Member, discord.User]], raw_name=False):
+    member_ids = tuple(map(attrgetter("id"), members))
+    res = self.postgres("select * from members where id in %s", member_ids)
+
+    for member_id in set(member_ids) - set(map(itemgetter(0), res)):
+      self.postgres("insert into members (id) values (%s)", member_id)
+      res.append((member_id, 100, None))
+
+    if raw_name:
+      return res
+    res = [(member_id, point, self.get_nickname(member, nickname)) for member, (member_id, point, nickname) in zip(members, res)]
+    return res
 
 if __name__ == "__main__":
   bot = SumireBot()

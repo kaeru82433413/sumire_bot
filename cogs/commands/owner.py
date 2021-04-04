@@ -16,7 +16,7 @@ class Owner(commands.Cog, name="owner"):
       raise commands.NotOwner
 
   @commands.command(aliases=["db", "sql"])
-  async def database(self, ctx, sentence):
+  async def database(self, ctx, *, sentence):
     """
     DBにクエリを送ります
     <*query*>

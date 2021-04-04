@@ -51,6 +51,14 @@ class Test(commands.Cog, name="test"):
     converterの動作確認用
     """
     await ctx.send_help(ctx.command)
+  
+  @converter.command(name="member")
+  async def conveter_member(self, ctx, member: discord.Member):
+    """
+    メンバーを取得します
+    <member>
+    """
+    await ctx.send(member)
 
 def setup(bot):
   bot.add_cog(Test(bot))

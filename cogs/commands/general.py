@@ -13,8 +13,17 @@ class General(commands.Cog, name="general"):
   def __init__(self, bot):
     self.bot = bot
   
+  @commands.command()
+  async def info(self, ctx, function):
+    """
+    botの各機能の詳細を表示します
+    未実装
+    [*function*]
+    """
+    pass
+  
   @commands.command(name="calc")
-  async def calc_cmd(self, ctx, *, text):
+  async def calculator(self, ctx, *, text):
     """
     数式を計算します
     数値の整数部分にはカンマを含めることができます。例：82,433,413
