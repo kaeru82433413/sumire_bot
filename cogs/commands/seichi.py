@@ -37,7 +37,7 @@ class Seichi(commands.Cog, name="seichi"):
     types = [type_cnd for type_cnd in TYPE_CNDS if type_cnd in types]
     if not types: types = ["break"]
 
-    seichi_res_json = requests.get(f"https://ranking-gigantic.seichi.click/api/ranking/player/{uuid}", params={"types":",".join(types)}).json()
+    seichi_res_json = requests.get(f"https://ranking-gigantic.seichi.click/api/ranking/player/{uuid}", params={"types": ",".join(types)}).json()
     if seichi_res_json == {"message":"requested data does not exist."}:
       await ctx.send("該当データが見つかりませんでした")
       return
