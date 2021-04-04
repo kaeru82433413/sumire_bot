@@ -25,11 +25,17 @@ class SumireServer(commands.Cog, name="sumire"):
     """
     対象メンバーのポイントを表示します
     memberが指定されていない場合は実行者が対象になります
+    botを指定することはできません
     [member]
     """
     
     if member is None:
       member = ctx.author
+
+    if member.bot:
+      await ctx.send("botを指定しないでください！")
+      return
+
     res = ctx.bot.member_data(member)
     await ctx.send(f"{res[2]}の所持ポイントは{res[1]}ptです")
   
@@ -63,6 +69,7 @@ class SumireServer(commands.Cog, name="sumire"):
     """
     自分のポイントを他人に渡します
     pointは自然数で指定してください。また、所持ポイントより大きい値は指定できません
+    botを指定することはできません
     <target> <point>
     """
     
@@ -70,15 +77,21 @@ class SumireServer(commands.Cog, name="sumire"):
       await ctx.send(f"{point}は自然数ではありませんよ？")
       return
     
+    if target.bot:
+      await ctx.send("botを指定しないでください！")
+      return
+
+    
     author_point, author_name = ctx.bot.member_data(ctx.author)[1:]
     if author_point < point:
       await ctx.send(f"所持ポイントが足りないため実行できません(所持ポイント:{author_point})")
       return
+    
     target_point, target_name = ctx.bot.member_data(target)[1:]
 
     ctx.bot.postgres("update members set point = point - %s where id = %s", point, ctx.author.id)
     ctx.bot.postgres("update members set point = point + %s where id = %s", point, target.id)
-    await ctx.send(f"{point}ポイント譲渡しました\n{author_name}の所持ポイント：{author_point}→{author_point-point}\n{target_name}の所持ポイント：{target_point}→{target_point+point}")
+    await ctx.send(f"{target_name}に{point}ポイント譲渡しました\n{author_name}の所持ポイント：{author_point}→{author_point-point}\n{target_name}の所持ポイント：{target_point}→{target_point+point}")
     
 
 
