@@ -18,6 +18,9 @@ class Events(commands.Cog):
       login_notice_ch = self.bot.get_channel(769174714538786847)
       await login_notice_ch.send(f"{self.bot.user} がログインしたよ！")
     
+    if self.bot.sumire_server is None:
+      self.bot.__class__.sumire_server = self.bot.get_guild(504299765379366912)
+    
     now = datetime.now()
     wait_time = 60 - (now.second + now.microsecond*10**-6)
     await asyncio.sleep(wait_time)

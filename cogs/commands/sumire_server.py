@@ -108,8 +108,7 @@ class SumireServer(commands.Cog, name="sumire"):
       await ctx.send(f"{page}は自然数ではありませんよ？")
       return
 
-    guild = ctx.bot.get_guild(504299765379366912)
-    members = [member for member in guild.members if not member.bot]
+    members = [member for member in self.bot.sumire_server.members if not member.bot]
     res = ctx.bot.members_data(members)
 
     res = sorted(res, key=itemgetter(1), reverse=True)

@@ -19,6 +19,7 @@ def dynamic_prefix(bot, message):
 
 
 class SumireBot(commands.Bot):
+  sumire_server = None
   def __init__(self):
     intents = discord.Intents.all()
     super().__init__(command_prefix=dynamic_prefix, intents=intents, help_command=SumireBotHelp())
@@ -51,7 +52,7 @@ class SumireBot(commands.Bot):
       return name
     else:
       if isinstance(member, discord.User):
-        member = self.get_guild(504299765379366912).get_member(member.id)
+        member = self.sumire_server.get_member(member.id)
       return member.display_name
 
   def member_data(self, member, raw_name=False):
