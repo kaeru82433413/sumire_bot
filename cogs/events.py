@@ -87,12 +87,11 @@ class Events(commands.Cog):
       report_embed.add_field(name="Author", value=ctx.author.name)
       report_embed.add_field(name="Content", value=ctx.message.content)
       report_embed.add_field(name="MessageURL", value=ctx.message.jump_url)
+      
       tb_format = "".join(error_tb.format())
-      if len(tb_format) > 1000:
-        traceback_file = discord.File(io.BytesIO(tb_format.encode()), filename="traceback.txt")
-      else:
+      if len(tb_format) <= 1000:
         report_embed.add_field(name="Traceback", value=discord.utils.escape_markdown(tb_format), inline=False)
-        traceback_file = None
+      traceback_file = discord.File(io.BytesIO(tb_format.encode()), filename="traceback.txt")
 
       report_ch = ctx.bot.get_channel(782423473569660969)
       await report_ch.send(embed=report_embed, file=traceback_file)
