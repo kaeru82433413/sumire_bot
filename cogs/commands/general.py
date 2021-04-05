@@ -18,7 +18,7 @@ class General(commands.Cog, name="general"):
     """
     botの各機能の詳細を表示します
     未実装
-    [*function*]
+    [function]
     """
     pass
   
@@ -34,7 +34,7 @@ class General(commands.Cog, name="general"):
     例：sin(radian(45))
     tick, sec, min, hour, day, st, c, lc, chunk, unit, star, k, m, g, %, pi, radian, degreeの18個の単位が使えます。直前の値を定数倍します
     使用例：1day/30min
-    <*expression*>
+    <expression>
     """
     text = text.replace(r"\*", "*")
     try:
@@ -65,7 +65,7 @@ class General(commands.Cog, name="general"):
     """
     素因数分解を行います
     2以上を整数を指定してください
-    <*value*>
+    <value>
     """
     if value < 2:
       raise commands.BadArgument
@@ -95,7 +95,7 @@ class General(commands.Cog, name="general"):
     """
     引数の最大公約数を求めます
     引数は自然数でなくてはいけません
-    [*values*…]
+    [values…]
     """
     await ctx.send(math.gcd(*values))
 
@@ -104,7 +104,7 @@ class General(commands.Cog, name="general"):
     """
     引数の最小公倍数を求めます
     引数は自然数でなくてはいけません
-    [*values*…]
+    [values…]
     """
     await ctx.send(reduce(lambda a, b: a*b//math.gcd(a, b), values))
 

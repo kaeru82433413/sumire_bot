@@ -14,7 +14,7 @@ class Test(commands.Cog, name="test"):
   async def arg_cmd(self, ctx, arg):
     """
     引数を1つだけ受け取り、表示します
-    <*arg*>
+    <arg>
     """
     await ctx.send(repr(arg))
   
@@ -22,7 +22,7 @@ class Test(commands.Cog, name="test"):
   async def args_cmd(self, ctx, *args):
     """
     引数を複数受け取り、表示します
-    [*args*…]
+    [args…]
     """
     await ctx.send(args)
   
@@ -31,7 +31,7 @@ class Test(commands.Cog, name="test"):
     """
     キーワード引数を受け取り、表示します
     空白で区切っても1つの引数と解釈します
-    <*kwarg*>
+    <kwarg>
     """
     await ctx.send(repr(kwarg))
 
@@ -40,7 +40,7 @@ class Test(commands.Cog, name="test"):
     """
     キーワード引数を受け取り、コマンド名の直後の空白文字も含めた結果を表示します
     空白で区切っても1つの引数と解釈します
-    <*kwarg*>
+    <kwarg>
     """
     await ctx.send(repr(kwarg))
 
