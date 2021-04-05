@@ -170,9 +170,12 @@ class SumireServer(commands.Cog, name="sumire"):
       return
 
     ctx.bot.postgres("update members set nickname = %s where id = %s", nickname, ctx.author.id)
-    old_nickname = repr(old_nickname) if old_nickname is not None else "未設定"
-    nickname = repr(nickname) if nickname is not None else "未設定"
-    await ctx.send(f"ニックネームを{old_nickname}から{nickname}にしました")
+    if old_nickname is None:
+      await ctx.send(f"ニックネームを{nickname}に設定しました")
+    elif nickname is None:
+      await ctx.send(f"ニックネームを{old_nickname}から未設定にしました")
+    else:
+      await ctx.send(f"ニックネームを{old_nickname}から{nickname}に変更しました")
   
   
 def setup(bot):
