@@ -23,7 +23,8 @@ class SumireBot(commands.Bot):
   def __init__(self):
     intents = discord.Intents.all()
     super().__init__(command_prefix=dynamic_prefix, intents=intents, help_command=SumireBotHelp())
-    cogs = ["cogs.commands.general", "cogs.commands.sumire_server", "cogs.commands.seichi", "cogs.commands.test", "cogs.commands.admin", "cogs.commands.owner",
+    cogs = ["cogs.commands.general", "cogs.commands.sumire_server", "cogs.commands.seichi", "cogs.commands.test",
+            "cogs.commands.admin", "cogs.commands.owner",
             "cogs.events", "cogs.loops", "jishaku"]
     for cog in cogs:
       self.load_extension(cog)
@@ -47,38 +48,41 @@ class SumireBot(commands.Bot):
         except psycopg2.ProgrammingError as e:
           return None
   
-  def get_nickname(self, member, name):
+  @classmethod
+  def get_nickname(cls, member, name):
     if name is not None:
       return name
     else:
       if isinstance(member, discord.User):
-        member = self.sumire_server.get_member(member.id)
+        member = cls.sumire_server.get_member(member.id)
       return member.display_name
 
-  def member_data(self, member, raw_name=False):
-    res = self.postgres("select * from members where id = %s", member.id)
+  @classmethod
+  def member_data(cls, member, raw_name=False):
+    res = cls.postgres("select * from members where id = %s", member.id)
     if not res:
-      self.postgres("insert into members (id) values (%s)", member.id)
+      cls.postgres("insert into members (id) values (%s)", member.id)
       res = (member.id, 100, None)
     else:
       res = res[0]
 
     if raw_name:
       return res
-    return res[:2] + (self.get_nickname(member, res[2]),)
+    return res[:2] + (cls.get_nickname(member, res[2]),)
 
-  def members_data(self, members, raw_name=False):
+  @classmethod
+  def members_data(cls, members, raw_name=False):
     member_ids = tuple(map(attrgetter("id"), members))
-    res = self.postgres("select * from members where id in %s", member_ids)
-    membeds_dict = {member.id: member for member in members}
+    res = cls.postgres("select * from members where id in %s", member_ids)
+    members_dict = {member.id: member for member in members}
+
 
     for member_id in set(member_ids) - set(map(itemgetter(0), res)):
-      self.postgres("insert into members (id) values (%s)", member_id)
-      res.append((member_id, 100, None))
+      res.append(cls.member_data(members_dict[member_id]))
 
     if raw_name:
       return res
-    res = [(member_id, point, self.get_nickname(membeds_dict[member_id], nickname)) for member_id, point, nickname in res]
+    res = [(member_id, point, cls.get_nickname(members_dict[member_id], nickname)) for member_id, point, nickname in res]
     return res
 
 if __name__ == "__main__":
