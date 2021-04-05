@@ -20,6 +20,8 @@ def dynamic_prefix(bot, message):
 
 class SumireBot(commands.Bot):
   sumire_server = None
+  db_cursor = psycopg2.connect(DATABASE_URL).cursor()
+
   def __init__(self):
     intents = discord.Intents.all()
     super().__init__(command_prefix=dynamic_prefix, intents=intents, help_command=SumireBotHelp())
@@ -33,21 +35,19 @@ class SumireBot(commands.Bot):
     TOKEN = os.getenv("sumire_bot_token")
     super().run(TOKEN)
   
-  @staticmethod
-  def postgres(sentence, *params):
-    with psycopg2.connect(DATABASE_URL) as conn:
-      with conn.cursor() as cur:
-        try:
-          cur.execute(sentence, params)
-        except psycopg2.ProgrammingError as e:
-          tb = TracebackException.from_exception(e)
-          return "".join(tb.format_exception_only())
+  @classmethod
+  def postgres(cls, sql, *params):
+    try:
+      cls.db_cursor.execute(sql, params)
+    except psycopg2.ProgrammingError as e:
+      tb = TracebackException.from_exception(e)
+      return "".join(tb.format_exception_only())
 
-        try:
-          return list(cur)
-        except psycopg2.ProgrammingError as e:
-          return None
-  
+    try:
+      return cls.db_cursor.fetchall()
+    except psycopg2.ProgrammingError as e:
+      return None # 結果がなければNoneを返す
+
   @classmethod
   def get_nickname(cls, member, name):
     if name is not None:
