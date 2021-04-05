@@ -2,6 +2,7 @@ from discord.ext import commands
 import discord
 from operator import itemgetter
 import random
+import re
 
 class SumireServer(commands.Cog, name="sumire"):
   """
@@ -150,15 +151,22 @@ class SumireServer(commands.Cog, name="sumire"):
     """
     実行者ニックネームを設定します
     ニックネームが指定されていない場合は未設定状態にします
+    左右の空白文字は無視されます
     ニックネームは1~32文字で指定してください
     他人のニックネームの変更はできません
     ~~やりたければ「お兄ちゃん」とか「ご主人様」とか「豚野郎」とかでもどうぞ。ただしふざけすぎには注意~~
     [nickname]
     """
 
-    if nickname is not None and not 1 <= len(nickname) <= 32:
-      await ctx.send("ニックネームは1~32文字で指定してください")
-      return
+    if nickname is not None:
+      nickname = nickname.strip()
+      print(repr(nickname))
+      if not 1 <= len(nickname) <= 32:
+        await ctx.send("ニックネームは1~32文字で指定してください")
+        return
+      if "\n" in nickname:
+        await ctx.send("ニックネームに改行文字を含むことはできません")
+        return
 
     old_nickname = ctx.bot.member_data(ctx.author, True)[2]
 
@@ -171,11 +179,11 @@ class SumireServer(commands.Cog, name="sumire"):
 
     ctx.bot.postgres("update members set nickname = %s where id = %s", nickname, ctx.author.id)
     if old_nickname is None:
-      await ctx.send(f"ニックネームを{nickname}に設定しました")
+      await ctx.send(f"ニックネームを{repr(nickname)}に設定しました")
     elif nickname is None:
-      await ctx.send(f"ニックネームを{old_nickname}から未設定にしました")
+      await ctx.send(f"ニックネームを{repr(old_nickname)}から未設定にしました")
     else:
-      await ctx.send(f"ニックネームを{old_nickname}から{nickname}に変更しました")
+      await ctx.send(f"ニックネームを{repr(old_nickname)}から{repr(nickname)}に変更しました")
   
   
 def setup(bot):
