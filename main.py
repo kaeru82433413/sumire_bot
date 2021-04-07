@@ -7,6 +7,9 @@ from operator import attrgetter, itemgetter
 import psycopg2
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+conn = psycopg2.connect(DATABASE_URL)
+conn.autocommit = True
+cur = conn.cursor()
 
 def dynamic_prefix(bot, message):
   if os.name=="nt": # ローカル起動時のデバッグ用
@@ -20,7 +23,7 @@ def dynamic_prefix(bot, message):
 
 class SumireBot(commands.Bot):
   sumire_server = None
-  db_cursor = psycopg2.connect(DATABASE_URL).cursor()
+  db_cursor = cur
 
   def __init__(self):
     intents = discord.Intents.all()
