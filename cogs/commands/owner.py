@@ -28,14 +28,17 @@ class Owner(commands.Cog, name="owner"):
       await ctx.send(res)
   
   @commands.command(name="error")
-  async def error_cmd(self, ctx, error_name, *, arg):
+  async def error_cmd(self, ctx, error_name="Exception", *, arg=None):
     """
     指定した例外を発生させます
     <error>
     """
     error_name = error_name.lower()
     for error in filter(lambda x: x.__name__.lower() == error_name, [Exception] + Exception.__subclasses__()):
-      raise error(arg)
+      if arg is None:
+        raise error
+      else:
+        raise error(arg)
     else:
       await ctx.send("一致する例外がありませんでした")
   
