@@ -68,7 +68,7 @@ class SumireServer(commands.Cog, name="sumire"):
   @point_cmd.command(aliases=["giveaway"])
   async def transfer(self, ctx, target: discord.Member, point: int):
     """
-    自分のポイントを他人に渡します
+    自分のポイントを他人に譲渡します
     pointは自然数で指定してください。また、所持ポイントより大きい値は指定できません
     botを指定することはできません
     <target> <point>
@@ -119,7 +119,7 @@ class SumireServer(commands.Cog, name="sumire"):
       return
     
     ranking_embed = discord.Embed(title=f"ポイントランキング ({page}/{(len(res)-1)//20+1}ページ)")
-    ranking_rows = [f"{i}位 {point}pt: {name}" for i, (_, point, name) in enumerate(target_members, 1)]
+    ranking_rows = [f"{i}位 {point}pt: {name}" for i, (_, point, name) in enumerate(target_members, 20*(page-1)+1)]
     ranking_embed.description = "\n".join(ranking_rows)
     await ctx.send(embed=ranking_embed)
   
@@ -160,7 +160,6 @@ class SumireServer(commands.Cog, name="sumire"):
 
     if nickname is not None:
       nickname = nickname.strip()
-      print(repr(nickname))
       if not 1 <= len(nickname) <= 32:
         await ctx.send("ニックネームは1~32文字で指定してください")
         return
