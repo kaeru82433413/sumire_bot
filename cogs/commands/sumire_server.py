@@ -12,7 +12,7 @@ class SumireServer(commands.Cog, name="sumire"):
     self.bot = bot
   
   def cog_check(self, ctx):
-    return isinstance(ctx.channel, discord.DMChannel) or ctx.guild.id == 504299765379366912
+    return isinstance(ctx.channel, discord.DMChannel) or ctx.guild == self.bot.sumire_server
   
   @commands.group(name="point", aliases=["pt"], invoke_without_command=True)
   async def point_cmd(self, ctx):
