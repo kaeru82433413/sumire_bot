@@ -22,11 +22,7 @@ class Admin(commands.Cog, name="admin"):
         使用チャンネルのメッセージを削除します
         <limit>
         """
-        async for message in ctx.history(limit=limit+1):
-            try:
-                await message.delete()
-            except discord.NotFound:
-                break
+        await ctx.channel.purge(bulk=False, limit=limit+1)
 
 def setup(bot):
     bot.add_cog(Admin(bot))
