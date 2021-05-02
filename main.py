@@ -4,6 +4,7 @@ from cogs.help_command import SumireBotHelp
 import os
 from traceback import TracebackException
 from operator import attrgetter, itemgetter
+from typing import Union, Iterable
 import psycopg2
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -58,31 +59,53 @@ class SumireBot(commands.Bot):
                 member = self.sumire_server.get_member(member.id)
             return member.display_name
 
-    def member_data(self, member, raw_name=False):
-        res = self.postgres("select * from members where id = %s", member.id)
+    def member_data(self, member, columns, raw_name=False):
+        res = self.postgres(f"select {', '.join(columns)} from members where id = %s", member.id)
+
         if not res:
             self.postgres("insert into members (id) values (%s)", member.id)
-            res = (member.id, 100, None)
-        else:
-            res = res[0]
+            res = self.postgres(f"select {', '.join(columns)} from members where id = %s", member.id)
+        res = res[0]
 
         if raw_name:
             return res
-        return res[:2] + (self.get_nickname(member, res[2]),)
+        
+        member_data = []
+        for value, column in zip(res, columns):
+            if column == "nickname":
+                value = self.get_nickname(member, value)
+            member_data.append(value)
+        return tuple(member_data)
+        
+    def members_data(self, members: Iterable[Union[discord.User, discord.Member]], columns, raw_name=False):
 
-    def members_data(self, members, raw_name=False):
+        for i, column in enumerate(columns):
+            if column == "id":
+                id_index = i
+                break
+        else:
+            raise ValueError("columnsに'id'が含まれていません")
+
         member_ids = tuple(map(attrgetter("id"), members))
-        res = self.postgres("select * from members where id in %s", member_ids)
+        res = self.postgres(f"select {', '.join(columns)} from members where id in %s", member_ids)
         members_dict = {member.id: member for member in members}
 
-
-        for member_id in set(member_ids) - set(map(itemgetter(0), res)):
-            res.append(self.member_data(members_dict[member_id]))
+        for member_id in set(member_ids) - set(map(itemgetter(id_index), res)):
+            res.append(self.member_data(members_dict[member_id], columns, raw_name))
 
         if raw_name:
             return res
-        res = [(member_id, point, self.get_nickname(members_dict[member_id], nickname)) for member_id, point, nickname in res]
-        return res
+        
+        members_data = []
+        for res_i in res:
+            member_data = []
+            member_id = res_i[id_index]
+            for value, column in zip(res_i, columns):
+                if column == "nickname":
+                    value = self.get_nickname(members_dict[member_id], value)
+                member_data.append(value)
+            members_data.append(tuple(member_data))
+        return members_data
 
 if __name__ == "__main__":
     bot = SumireBot()

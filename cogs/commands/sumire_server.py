@@ -37,8 +37,8 @@ class SumireServer(commands.Cog, name="sumire"):
             await ctx.send("botを指定しないでください！")
             return
 
-        res = ctx.bot.member_data(member)
-        await ctx.send(f"{res[2]}の所持ポイントは{res[1]}ptです")
+        nickname, point = ctx.bot.member_data(member, ("nickname", "point"))
+        await ctx.send(f"{nickname}の所持ポイントは{point}ptです")
     
     @point_cmd.command(name="random")
     async def point_random(self, ctx, point: int):
@@ -53,7 +53,7 @@ class SumireServer(commands.Cog, name="sumire"):
             await ctx.send(f"{point}は自然数ではありませんよ？")
             return
         
-        before_point, name = ctx.bot.member_data(ctx.author)[1:]
+        before_point, name = ctx.bot.member_data(ctx.author, ("point", "nickname"))
         if before_point < point:
             await ctx.send(f"所持ポイントが足りないため実行できません(所持ポイント:{before_point})")
             return
@@ -83,12 +83,12 @@ class SumireServer(commands.Cog, name="sumire"):
             return
 
         
-        author_point, author_name = ctx.bot.member_data(ctx.author)[1:]
+        author_point, author_name = ctx.bot.member_data(ctx.author, ("point", "nickname"))
         if author_point < point:
             await ctx.send(f"所持ポイントが足りないため実行できません(所持ポイント:{author_point})")
             return
         
-        target_point, target_name = ctx.bot.member_data(target)[1:]
+        target_point, target_name = ctx.bot.member_data(target, ("point", "nickname"))
 
         ctx.bot.postgres("update members set point = point - %s where id = %s", point, ctx.author.id)
         ctx.bot.postgres("update members set point = point + %s where id = %s", point, target.id)
@@ -110,7 +110,7 @@ class SumireServer(commands.Cog, name="sumire"):
             return
 
         members = [member for member in self.bot.sumire_server.members if not member.bot]
-        res = ctx.bot.members_data(members)
+        res = ctx.bot.members_data(members, ("id", "point", "nickname"))
 
         res = sorted(res, key=itemgetter(1), reverse=True)
         target_members = res[page*20-20:page*20]
@@ -140,7 +140,7 @@ class SumireServer(commands.Cog, name="sumire"):
         """
         if member is None:
             member = ctx.author
-        nickname = ctx.bot.member_data(member)[2]
+        nickname, = ctx.bot.member_data(member, ("nickname",), True)
         if nickname is None:
             await ctx.send(f"{member}のニックネームは未設定です")
         else:
@@ -167,7 +167,7 @@ class SumireServer(commands.Cog, name="sumire"):
                 await ctx.send("ニックネームに改行文字を含むことはできません")
                 return
 
-        old_nickname = ctx.bot.member_data(ctx.author, True)[2]
+        old_nickname, = ctx.bot.member_data(ctx.author, ("nickname",), True)
 
         if nickname == old_nickname:
             if nickname is not None:
