@@ -90,7 +90,7 @@ class Events(commands.Cog):
             
             tb_format = "".join(error_tb.format())
             if len(tb_format) <= 1000:
-                report_embed.add_field(name="Traceback", value=discord.utils.escape_markdown(tb_format), inline=False)
+                report_embed.add_field(name="Traceback", value="```"+discord.utils.escape_markdown(tb_format)+"```", inline=False)
             traceback_file = discord.File(io.BytesIO(tb_format.encode()), filename="traceback.txt")
 
             report_ch = ctx.bot.get_channel(782423473569660969)
