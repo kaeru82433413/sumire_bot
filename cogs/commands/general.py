@@ -105,7 +105,7 @@ class General(commands.Cog, name="general"):
         引数は自然数でなくてはいけません
         [values…]
         """
-        await ctx.send(math.lcm(values))
+        await ctx.send(math.lcm(*values))
 
 
 def setup(bot):
