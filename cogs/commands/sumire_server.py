@@ -3,6 +3,18 @@ import discord
 from operator import itemgetter
 import random
 import re
+from datetime import datetime, timedelta
+
+def _point_transition(nickname, before=None, after=None, increase=None):
+    if sum(map(lambda x: x is None, [before, after, increase])) != 1:
+        raise ValueError("キーワード引数を2つ指定してください")
+    
+    if after is None:
+        after = before + increase
+    elif before is None:
+        before = after - increase
+    
+    return f"{nickname}の所持ポイント：{before}→{after}"
 
 class SumireServer(commands.Cog, name="sumire"):
     """
@@ -40,29 +52,54 @@ class SumireServer(commands.Cog, name="sumire"):
         nickname, point = ctx.bot.member_data(member, ("nickname", "point"))
         await ctx.send(f"{nickname}の所持ポイントは{point}ptです")
     
+    @point_cmd.command()
+    async def daily(self, ctx):
+        """
+        ランダムでポイントが手に入ります
+        1日に1回のみ使用可能、日付の境目は午前4時(JST)です
+        []
+        """
+        now = datetime.now()
+        today = datetime(now.year, now.month, now.day)
+        if now.hour < 4:
+            yesterday = today - timedelta(days=1)
+            last_border = yesterday + timedelta(seconds=60*60*4)
+        else:
+            last_border = today + timedelta(seconds=60*60*4)
+        
+        before_point, last_daily, nickname = self.bot.member_data(ctx.author, ("point", "last_daily", "nickname"))
+
+        if last_daily <= last_border:
+            increase = random.randint(8, 16)
+            self.bot.postgres("update members set point = point + %s, last_daily = %s where id = %s", increase, now, ctx.author.id)
+            await ctx.send(f"デイリーボーナスを受け取りました！{increase}ptゲット！\n{_point_transition(nickname, before=before_point, increase=increase)}")
+
+        else:
+            await ctx.send("今日の分は既に受け取っています")
+    
     @point_cmd.command(name="random")
-    async def point_random(self, ctx, point: int):
+    async def point_random(self, ctx, value: int):
         """
         ランダムでポイントを増減させます
         50%で指定数増え、残りの50%で指定数減ります
-        pointは自然数で指定してください。また、所持ポイントより大きい値は指定できません
-        <point>
+        valueは自然数で指定してください。また、所持ポイントより大きい値は指定できません
+        <value>
         """
 
-        if point <= 0:
-            await ctx.send(f"{point}は自然数ではありませんよ？")
+        if value <= 0:
+            await ctx.send(f"{value}は自然数ではありませんよ？")
             return
         
         before_point, name = ctx.bot.member_data(ctx.author, ("point", "nickname"))
-        if before_point < point:
+        if before_point < value:
             await ctx.send(f"所持ポイントが足りないため実行できません(所持ポイント:{before_point})")
             return
 
         result = random.randrange(-1, 2, 2)
-        ctx.bot.postgres("update members set point = point + %s where id = %s", point*result, ctx.author.id)
+        ctx.bot.postgres("update members set point = point + %s where id = %s", value*result, ctx.author.id)
         
         message = {-1: "残念！はずれ！", 1: "おめでとう！あたり！"}[result]
-        await ctx.send(f"{message}\n{name}の所持ポイント：{before_point}→{before_point+point*result}")
+        await ctx.send(f"{message}\n{_point_transition(name, before=before_point, increase=value*result)}")
 
 
     @point_cmd.command(aliases=["giveaway"])
@@ -92,7 +129,7 @@ class SumireServer(commands.Cog, name="sumire"):
 
         ctx.bot.postgres("update members set point = point - %s where id = %s", point, ctx.author.id)
         ctx.bot.postgres("update members set point = point + %s where id = %s", point, target.id)
-        await ctx.send(f"{target_name}に{point}ポイント譲渡しました\n{author_name}の所持ポイント：{author_point}→{author_point-point}\n{target_name}の所持ポイント：{target_point}→{target_point+point}")
+        await ctx.send(f"{target_name}に{point}ポイント譲渡しました\n{_point_transition(author_name, before=author_point, increase=-point)}\n{_point_transition(target_name, before=target_point, increase=point)}")
         
 
 

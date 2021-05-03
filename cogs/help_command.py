@@ -1,5 +1,6 @@
 from discord.ext import commands
 import discord
+from operator import attrgetter
 
 class SumireBotHelp(commands.HelpCommand):
     def __init__(self):
@@ -74,6 +75,10 @@ class SumireBotHelp(commands.HelpCommand):
 
     async def send_command_help(self, command):
         help_embed = discord.Embed()
-        help_embed.title = self.parents_aliases(command) + " " + command.help.rsplit("\n", 1)[1]
+        help_embed.title = self.parents_aliases(command)
+        command_arg = command.help.rsplit("\n", 1)[1]
+        if command_arg != "[]":
+            help_embed.title += " " + command_arg
+
         help_embed.description = command.help.rsplit("\n", 1)[0]
         await self.get_destination().send(embed=help_embed)
