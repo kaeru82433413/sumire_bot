@@ -45,8 +45,8 @@ class SumireBotHelp(commands.HelpCommand):
         
         help_embed.insert_field_at(0, name="help", value="help " + self.help.rsplit("\n", 1)[1] + "\n" + self.help.rsplit("\n", 1)[0] + f"\n一般使用できるカテゴリは以下の{category_count}つです", inline=False)
         
-        command_ch = self.context.bot.get_channel(770246431796625458)
-        help_embed.add_field(name="その他", value=f"prefixは「s/」と「!」が使えます。{command_ch.mention} ではprefixを省略できます", inline=False)
+        command_chs = map(self.context.bot.get_channel, [770246431796625458, 838603446990405683])
+        help_embed.add_field(name="その他", value=f"prefixは「s/」と「!」が使えます。{'と'.join(map(attrgetter('mention'), command_chs))} ではprefixを省略できます", inline=False)
 
         await self.get_destination().send(embed=help_embed)
 
