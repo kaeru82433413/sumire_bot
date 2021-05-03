@@ -49,6 +49,7 @@ class Test(commands.Cog, name="test"):
     async def converter(self, ctx):
         """
         converterの動作確認用
+        <arg>
         """
         await ctx.send_help(ctx.command)
     
