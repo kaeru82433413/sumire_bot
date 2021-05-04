@@ -60,16 +60,16 @@ class SumireServer(commands.Cog, name="sumire"):
         []
         """
         now = datetime.now()
-        today = datetime(now.year, now.month, now.day)
-        if now.hour < 4:
+        today = datetime(now.year, now.month, now.day) # 0時00分に変換
+        if now.hour < 4: # 4時より前なら、前日の4時が境目
             yesterday = today - timedelta(days=1)
             last_border = yesterday + timedelta(seconds=60*60*4)
-        else:
+        else: # そうでなければ、当日の4時が境目
             last_border = today + timedelta(seconds=60*60*4)
         
         before_point, last_daily, nickname = self.bot.member_data(ctx.author, ("point", "last_daily", "nickname"))
 
-        if last_daily <= last_border:
+        if last_daily < last_border: # 最後に受け取ったのが境目より前なら
             increase = random.randint(8, 16)
             self.bot.postgres("update members set point = point + %s, last_daily = %s where id = %s", increase, now, ctx.author.id)
             await ctx.send(f"デイリーボーナスを受け取りました！{increase}ptゲット！\n{_point_transition(nickname, before=before_point, increase=increase)}")
