@@ -1,7 +1,7 @@
 from discord.ext import commands
 import discord
 import re
-import requests
+import aiohttp
 import bisect
 import seichi_data
 
@@ -25,19 +25,23 @@ class Seichi(commands.Cog, name="seichi"):
             await ctx.send("mcidは3~16文字のアルファベット、数字、アンダーバーで指定してください")
             return
         
-        mojang_res = requests.get(f"https://api.mojang.com/users/profiles/minecraft/{player}")
-        if not mojang_res.text:
-            await ctx.send("存在しないプレイヤーです")
-            return
-        uuid = mojang_res.json()["id"]
-        uuid = "-".join([uuid[:8], uuid[8:12], uuid[12:16], uuid[16:20], uuid[20:]])
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"https://api.mojang.com/users/profiles/minecraft/{player}") as response:
+                if not await response.text():
+                    await ctx.send("存在しないプレイヤーです")
+                    return
+                uuid = (await response.json())["id"]
+                uuid = "-".join([uuid[:8], uuid[8:12], uuid[12:16], uuid[16:20], uuid[20:]])
 
         types = set(types)
         TYPE_CNDS = {"break": "整地量", "build": "建築量", "playtime": "接続時間", "vote": "投票数"}
         types = [type_cnd for type_cnd in TYPE_CNDS if type_cnd in types]
         if not types: types = ["break"]
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"https://ranking-gigantic.seichi.click/api/ranking/player/{uuid}", params={"types": ",".join(types)}) as response:
+                seichi_res_json = await response.json()
 
-        seichi_res_json = requests.get(f"https://ranking-gigantic.seichi.click/api/ranking/player/{uuid}", params={"types": ",".join(types)}).json()
         if seichi_res_json == {"message":"requested data does not exist."}:
             await ctx.send("該当データが見つかりませんでした")
             return
