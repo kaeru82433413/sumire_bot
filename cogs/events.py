@@ -64,8 +64,8 @@ class Events(commands.Cog):
             await ctx.send("引数を解析できませんでした")
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send("引数が足りないみたいですよ！")
-        elif isinstance(error, commands.BadArgument):
-            await ctx.send("おかしな引数が紛れ込んでいるみたい…")
+        elif isinstance(error, (commands.BadArgument, commands.BadUnionArgument)):
+            await ctx.send("おかしな引数が渡されたみたい…")
         elif isinstance(error, (commands.MissingPermissions, commands.NotOwner)):
             await ctx.send("あなたがこのコマンドを使うなんて127年早い！")
         elif isinstance(error, commands.CheckFailure):
