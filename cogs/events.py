@@ -38,7 +38,8 @@ class Events(commands.Cog):
                 if set(guild.get_member(self.bot.user.id).roles) & set(message.role_mentions):    # 役職にメンションされたらTrue
                     mentioned = True
         if mentioned:
-            await message.add_reaction("\N{Eyes}")
+            tenshi_hat_emoji = self.bot.get_emoji(845899764645756998)
+            await message.add_reaction(tenshi_hat_emoji)
 
         if isinstance(message.channel, discord.DMChannel):
             if message.author.id not in (self.bot.user.id, 481027469202423808): # bot自身, かえるさん#0785 のメッセージは除く
