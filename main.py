@@ -2,6 +2,7 @@ from discord.ext import commands
 import discord
 from cogs.help_command import SumireBotHelp
 import os
+import io
 from traceback import TracebackException
 from operator import attrgetter, itemgetter
 from typing import Union, Iterable
@@ -50,6 +51,16 @@ class SumireBot(commands.Bot):
             return cur.fetchall()
         except psycopg2.ProgrammingError as e:
             return None # 結果がなければNoneを返す
+    
+    @staticmethod
+    async def attachments_to_files(message):
+        files = []
+        for attachment in message.attachments:
+            file_data = io.BytesIO(await attachment.read())
+            filename, spoiler = attachment.filename, attachment.is_spoiler()
+            file = discord.File(file_data, filename, spoiler=spoiler)
+            files.append(file)
+        return files
 
     def get_nickname(self, member, name):
         if name is not None:

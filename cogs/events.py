@@ -51,12 +51,7 @@ class Events(commands.Cog):
                 await dm_ch.send(embed=embed)
 
                 if message.attachments:
-                    files = []
-                    for attachment in message.attachments:
-                        file_data = io.BytesIO(await attachment.read())
-                        filename, spoiler = attachment.filename, attachment.is_spoiler()
-                        file = discord.File(file_data, filename, spoiler=spoiler)
-                        files.append(file)
+                    files = await self.bot.attachments_to_files(message)
                     await dm_ch.send(files=files)
                 
 
