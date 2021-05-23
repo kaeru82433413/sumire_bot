@@ -12,7 +12,7 @@ class Admin(commands.Cog, name="admin"):
         if not isinstance(ctx.author, discord.Member):
             return False
         if ctx.author.guild_permissions.administrator:
-            raise commands.PermissionError
+            return True
         else:
             raise commands.MissingPermissions(["administrator"])
     
