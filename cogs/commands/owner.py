@@ -1,5 +1,6 @@
 from discord.ext import commands
 import discord
+from typing import Union
 
 
 class Owner(commands.Cog, name="owner"):
@@ -27,6 +28,27 @@ class Owner(commands.Cog, name="owner"):
         else:
             await ctx.send(res)
     
+
+    @commands.command()
+    async def send(self, ctx, target: Union[discord.TextChannel, discord.DMChannel, discord.User, discord.Member], *, content=""):
+        """
+        targetにcontentの内容を送信します
+        attachmentsが存在する場合は添付します
+        <target> [content]
+        """
+        
+        content = content.strip()
+        if not ctx.message.attachments:
+
+            if not content:
+                await ctx.send("contentが空です")
+                return
+            await target.send(content)
+
+        else:
+            await target.send(content, files=await ctx.bot.attachments_to_files(ctx.message))
+    
+
     @commands.command(name="error")
     async def error_cmd(self, ctx, error_name="Exception", *, arg=None):
         """
