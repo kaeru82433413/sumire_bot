@@ -3,6 +3,7 @@ import discord
 import os
 import math
 import operator
+import inspect
 import calc
 from calc import expression
 
@@ -116,7 +117,7 @@ class General(commands.Cog, name="general"):
         """
 
         if not values:
-            raise commands.MissingRequiredArgument
+            raise commands.MissingRequiredArgument(inspect.Parameter("values", inspect.Parameter.POSITIONAL_OR_KEYWORD))
         
         mul = math.lcm(*map(operator.attrgetter("denominator"), values))
         div = math.gcd(*map(operator.attrgetter("numerator"), values))
