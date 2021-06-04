@@ -17,14 +17,16 @@ class Owner(commands.Cog, name="owner"):
             raise commands.NotOwner
 
     @commands.command(aliases=["db", "sql"])
-    async def database(self, ctx, *, sentence):
+    async def database(self, ctx, *, query):
         """
         DBにクエリを送ります
         <query>
         """
-        res = self.bot.postgres(sentence)
+        res = self.bot.postgres(query)
         if res is None:
             await ctx.message.add_reaction("\N{White Heavy Check Mark}")
+        if isinstance(res, str):
+            await ctx.send(f"```{res}```")
         else:
             await ctx.send(res)
     
