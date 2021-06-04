@@ -2,6 +2,7 @@ from discord.ext import commands
 import discord
 import os
 import math
+import operator
 import calc
 from calc import expression
 
@@ -106,6 +107,23 @@ class General(commands.Cog, name="general"):
         [values…]
         """
         await ctx.send(math.lcm(*values))
+    
+    @math_cmd.command()
+    async def ratio(self, ctx, *values: expression("fraction")):
+        """
+        引数の比を、互いに素である整数列で返します
+        [values]…
+        """
+
+        if not values:
+            raise commands.MissingRequiredArgument
+        
+        mul = math.lcm(*map(operator.attrgetter("denominator"), values))
+        div = math.gcd(*map(operator.attrgetter("numerator"), values))
+        res = []
+        for value in values:
+            res.append(str(int(value*mul/div)))
+        await ctx.send(" ".join(res))
 
 
 def setup(bot):

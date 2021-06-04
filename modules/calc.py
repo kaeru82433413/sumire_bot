@@ -170,13 +170,15 @@ class Bracket:
         return f"<values={self.values} operators={self.operators} function={self.function}>"
 
 def expression(result_type="int"):
-    if result_type not in ("natural", "int", "float"):
+    if result_type not in ("natural", "int", "float", "fraction"):
         raise ValueError
 
     def converter(value):
-        result = Bracket(value.replace(r"\*", "*")).calc()
+        result = Bracket(value.replace(r"\*", "*")).calc(fraction=(result_type=="fraction"))
 
-        if result_type in ("natural", "int") and not isinstance(result, int):
+        if result_type == "fraction":
+            return result
+        elif result_type in ("natural", "int") and not isinstance(result, int):
             raise ValueError
         if result_type == "natural" and result < 1:
             raise ValueError
