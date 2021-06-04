@@ -138,7 +138,7 @@ class SumireServer(commands.Cog, name="sumire"):
     async def ranking(self, ctx, page=1):
         """
         メンバーのポイントランキングを表示します
-        デフォルトで上位20人、ページを指定すると20*page-19から20*page位までを取得します
+        デフォルトで上位10人、ページを指定すると10*page-9から10*page位までを取得します
         ページ数は自然数で指定してください
         [page]
         """
@@ -150,16 +150,18 @@ class SumireServer(commands.Cog, name="sumire"):
         res = ctx.bot.members_data(members, ("id", "point", "nickname"))
 
         res = sorted(res, key=itemgetter(1), reverse=True)
-        target_members = res[page*20-20:page*20]
-        if not target_members:
+        max_page = (len(res)-1)//10 + 1 # 切り上げ除算
+        if page > max_page:
             await ctx.send(f"{page}ページ目は存在しません")
             return
         
-        ranking_embed = discord.Embed(title=f"ポイントランキング ({page}/{(len(res)-1)//20+1}ページ)")
-        ranking_rows = [f"{i}位 {point}pt: {name}" for i, (_, point, name) in enumerate(target_members, 20*(page-1)+1)]
+        target_members = res[page*10-10:page*10]
+        ranking_embed = discord.Embed(title=f"ポイントランキング ({page}/{max_page}ページ)")
+        ranking_rows = [f"{i}位 {point}pt: {name}" for i, (_, point, name) in enumerate(target_members, 10*page-9)]
         ranking_embed.description = "\n".join(ranking_rows)
         await ctx.send(embed=ranking_embed)
     
+
     @commands.group(name="nickname", aliases=["nick"], invoke_without_command=True)
     async def nickname_cmd(self, ctx):
         """
