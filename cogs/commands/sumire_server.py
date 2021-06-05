@@ -147,18 +147,25 @@ class SumireServer(commands.Cog, name="sumire"):
             return
 
         members = [member for member in self.bot.sumire_server.members if not member.bot]
-        res = ctx.bot.members_data(members, ("id", "point", "nickname"))
+        members_data = ctx.bot.members_data(members, ("id", "point", "nickname"))
 
-        res = sorted(res, key=itemgetter(1), reverse=True)
-        max_page = (len(res)-1)//10 + 1 # 切り上げ除算
+        members_data = sorted(members_data, key=itemgetter(1), reverse=True)
+        max_page = (len(members_data)-1)//10 + 1 # 切り上げ除算
         if page > max_page:
             await ctx.send(f"{page}ページ目は存在しません")
             return
         
-        target_members = res[page*10-10:page*10]
         ranking_embed = discord.Embed(title=f"ポイントランキング ({page}/{max_page}ページ)")
-        ranking_rows = [f"{i}位 {point}pt: {name}" for i, (_, point, name) in enumerate(target_members, 10*page-9)]
-        ranking_embed.description = "\n".join(ranking_rows)
+
+        ranking_rows = []
+        before = (float("inf"), 0)
+        for i, (_, point, name) in enumerate(members_data, 1):
+            if point == before[0]: # 前の順位と同じポイントなら同じ順位にする
+                i = before[1]
+            else:
+                before = (point, i)
+            ranking_rows.append(f"{i}位 {point}pt: {name}")
+        ranking_embed.description = "\n".join(ranking_rows[20*page-20:20*page])
         await ctx.send(embed=ranking_embed)
     
 
