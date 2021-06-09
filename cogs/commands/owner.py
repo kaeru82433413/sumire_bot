@@ -25,7 +25,7 @@ class Owner(commands.Cog, name="owner"):
         res = self.bot.postgres(query)
         if res is None:
             await ctx.message.add_reaction("\N{White Heavy Check Mark}")
-        if isinstance(res, str):
+        elif isinstance(res, str):
             await ctx.send(f"```{res}```")
         else:
             await ctx.send(res)
