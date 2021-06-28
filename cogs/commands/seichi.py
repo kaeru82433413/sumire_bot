@@ -3,8 +3,9 @@ import discord
 import re
 import aiohttp
 import bisect
+from calc import expression
 import seichi_data
-
+from games.base import Vector
 
 class Seichi(commands.Cog, name="seichi"):
     """
@@ -71,5 +72,33 @@ class Seichi(commands.Cog, name="seichi"):
         embed.set_footer(text=f'Last quit：{seichi_res_json[0]["lastquit"]}')
         await ctx.send(embed=embed)
     
+
+    @commands.command(aliases=["rgcmd"])
+    async def region_cmd(self, ctx, base_x: expression("int"), base_z: expression("int"), size_x: expression("natural"), size_z: expression("natural"), direction=None):
+        """
+        保護のコマンドを生成します
+        baseに基準となる座標、sizeに保護の大きさを指定してください。directionには(南東, 南西, 北東, 北西, SE, SW, NE, NW)のいずれかが指定できます。デフォルトは南東です。
+        baseが含まれるユニットを角として、directionの方角にsize_x*size_zユニットの領域を選択するコマンドを表示します。
+        baseとsizeには数式を使用できます。
+        <base_x> <base_z> <size_x> <size_z> [direction]
+        """
+
+        if direction in (None, "南東", "SE"):
+            direction = Vector(1, 1)
+        elif direction in ("南西", "SW"):
+            direction = Vector(-1, 1)
+        elif direction in ("北東", "NE"):
+            direction = Vector(1, -1)
+        elif direction in ("北西", "NW"):
+            direction = Vector(-1, -1)
+        else:
+            raise commands.BadArgument
+
+        p = Vector(base_x, base_z) // 15
+        q = p + (Vector(size_x, size_z)-1)*direction
+        (x1, x2), (z1, z2) = map(sorted, zip(p, q))
+        await ctx.send(f"//pos1 {15*x1},0,{15*z1}\n//pos2 {15*x2+14},255,{15*z2+14}")
+
+
 def setup(bot):
     bot.add_cog(Seichi(bot))
