@@ -62,13 +62,6 @@ class SumireBot(commands.Bot):
             files.append(file)
         return files
 
-    def get_nickname(self, member, name):
-        if name is not None:
-            return name
-        else:
-            if isinstance(member, discord.User):
-                member = self.sumire_server.get_member(member.id)
-            return member.display_name
 
     def member_data(self, member_id, columns):
         res = self.postgres(f"select {', '.join(columns)} from members where id = %s", member_id)
