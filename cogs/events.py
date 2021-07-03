@@ -18,9 +18,11 @@ class Events(commands.Cog):
             login_notice_ch = self.bot.get_channel(769174714538786847)
             await login_notice_ch.send(f"{self.bot.user} がログインしたよ！")
         
-        if self.bot.sumire_server is None:
+        if not hasattr(self.bot, "sumire_server"):
             self.bot.__class__.sumire_server = self.bot.get_guild(504299765379366912)
-        
+        if not hasattr(self.bot, "error_report_channel"):
+            type(self.bot).error_report_channel = self.bot.get_channel(782423473569660969)
+
         now = datetime.now()
         wait_time = 60 - (now.second + now.microsecond*10**-6)
         await asyncio.sleep(wait_time)
@@ -89,8 +91,7 @@ class Events(commands.Cog):
                 report_embed.add_field(name="Traceback", value="```"+tb_format+"```", inline=False)
             traceback_file = discord.File(io.BytesIO(tb_format.encode()), filename="traceback.txt")
 
-            report_ch = ctx.bot.get_channel(782423473569660969)
-            await report_ch.send(embed=report_embed, file=traceback_file)
+            await ctx.bot.error_report_channel.send(embed=report_embed, file=traceback_file)
 
             error_embed = discord.Embed(title="エラーが発生しました")
             error_embed.description = discord.utils.escape_markdown("".join(error_tb.format_exception_only())) + "開発者に報告しました。修正をお待ちください"

@@ -32,6 +32,10 @@ class Loops(commands.Cog):
                 embed.description = f"本日は 「{'」と「'.join(ach_names)}」です\n実績No{','.join(map(str, ach_ids))}を解除していない人は忘れずに解除しましょう"
 
             await regular_notice_ch.send(embed=embed)
+    
+    @minutely.error
+    async def minutely_error(self, error):
+        await self.bot.on_error("minutely" ,error=error)
 
 
 def setup(bot):

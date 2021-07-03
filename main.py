@@ -2,6 +2,8 @@ from discord.ext import commands
 import discord
 from cogs.help_command import SumireBotHelp
 import os
+import sys
+import datetime
 import io
 from traceback import TracebackException
 from operator import attrgetter, itemgetter
@@ -24,8 +26,6 @@ def dynamic_prefix(bot, message):
 
 
 class SumireBot(commands.Bot):
-    sumire_server = None
-
     def __init__(self):
         intents = discord.Intents.all()
         super().__init__(command_prefix=dynamic_prefix, intents=intents, help_command=SumireBotHelp())
@@ -39,6 +39,25 @@ class SumireBot(commands.Bot):
         TOKEN = os.getenv("sumire_bot_token")
         super().run(TOKEN)
     
+    async def on_error(self, event, error=None, *args, **kwargs):
+        now_utc = datetime.datetime.now() - datetime.timedelta(hours=9)
+        report_embed = discord.Embed(title="Error", color=0xff0000, timestamp=now_utc)
+        report_embed.add_field(name="Event", value=event)
+        if args:
+            report_embed.add_field(name="Args", value=args)
+        if kwargs:
+            report_embed.add_field(name="KwArgs", value=kwargs)
+
+        if error is None:
+            error = sys.exc_info()[1]
+        error_tb = TracebackException.from_exception(error)
+        tb_format = "".join(error_tb.format())
+        if len(tb_format) <= 1000:
+            report_embed.add_field(name="Traceback", value="```"+tb_format+"```", inline=False)
+        traceback_file = discord.File(io.BytesIO(tb_format.encode()), filename="traceback.txt")
+
+        await self.error_report_channel.send(embed=report_embed, file=traceback_file)
+
     @staticmethod
     def postgres(sql, *params):
         try:
