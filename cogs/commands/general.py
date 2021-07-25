@@ -119,9 +119,12 @@ class General(commands.Cog, name="general"):
         if not values:
             raise commands.MissingRequiredArgument(inspect.Parameter("values", inspect.Parameter.POSITIONAL_OR_KEYWORD))
         
-        mul = math.lcm(*map(operator.attrgetter("denominator"), values))
-        div = math.gcd(*map(operator.attrgetter("numerator"), values))
+        mul = math.lcm(*[value.denominator for value in values])
+        div = math.gcd(*[value.numerator for value in values])
+        if div == 0: # valueに0以外が含まれていないとgcdが0になり、ゼロ除算が発生する
+            div = 1
         res = []
+        print(mul, div)
         for value in values:
             res.append(str(int(value*mul/div)))
         await ctx.send(" ".join(res))
