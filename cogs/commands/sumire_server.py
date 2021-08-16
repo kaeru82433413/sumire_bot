@@ -20,11 +20,14 @@ class SumireServer(commands.Cog, name="sumire"):
     """
     すみれちゃんの遊戯室 用のコマンド
     """
+    ROLES = {
+        876675066329432114: "<#820939592999108648>で整地鯖の記念日実績を通知します"
+    }
     def __init__(self, bot):
         self.bot = bot
     
     def cog_check(self, ctx):
-        return isinstance(ctx.channel, discord.DMChannel) or ctx.guild == self.bot.sumire_server
+        return ctx.guild == self.bot.sumire_server
     
     @commands.group(name="point", aliases=["pt"], invoke_without_command=True)
     async def point_cmd(self, ctx):
@@ -170,7 +173,57 @@ class SumireServer(commands.Cog, name="sumire"):
         ranking_embed.description = "\n".join(ranking_rows[20*page-20:20*page])
         await ctx.send(embed=ranking_embed)
     
+    @commands.group(name="role", invoke_without_command=True)
+    async def role_cmd(self, ctx):
+        """
+        ロールの詳細表示、管理をするコマンドです
+        """
+        await ctx.send_help(ctx.command)
 
-    
+
+    @role_cmd.command(name="list")
+    async def list_cmd(self, ctx):
+        """
+        着脱可能なロールの一覧を表示します
+        []
+        """
+        roles_embed = discord.Embed(title="着脱可能なロールの一覧")
+        for role_id, role_info in self.ROLES.items():
+            role = self.bot.sumire_server.get_role(role_id)
+            roles_embed.add_field(name=role.name, value=role_info)
+        await ctx.send(embed=roles_embed)
+
+
+    @role_cmd.command()
+    async def add(self, ctx, role: discord.Role):
+        """
+        実行者にロールを付与します
+        <role>
+        """
+        if role.id not in self.ROLES:
+            await ctx.send("そのロールは付与できません")
+            return
+        if role in ctx.author.roles:
+            await ctx.send("既に付与されています")
+            return
+        await ctx.author.add_roles(role)
+        await ctx.send(f"{role.name}を付与しました")
+
+
+    @role_cmd.command()
+    async def remove(self, ctx, role: discord.Role):
+        """
+        実行者からロールを削除します
+        <role>
+        """
+        if role.id not in self.ROLES:
+            await ctx.send("そのロールは削除できません")
+            return
+        if role not in ctx.author.roles:
+            await ctx.send("そのロールは付与されていません")
+            return
+        await ctx.author.remove_roles(role)
+        await ctx.send(f"{role.name}を削除しました")
+
 def setup(bot):
     bot.add_cog(SumireServer(bot))
