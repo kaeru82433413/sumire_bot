@@ -39,16 +39,19 @@ class SumireBot(commands.Bot):
         TOKEN = os.getenv("sumire_bot_token")
         super().run(TOKEN)
     
-    async def on_error(self, event, error=None, *args, **kwargs):
+    async def on_error(self, *args, **kwargs):
         now_utc = datetime.datetime.now() - datetime.timedelta(hours=9)
         report_embed = discord.Embed(title="Error", color=0xff0000, timestamp=now_utc)
-        report_embed.add_field(name="Event", value=event)
-        if args:
-            report_embed.add_field(name="Args", value=args)
+
+        report_embed.add_field(name="Event", value=args[0])
+        if len(args) > 1:
+            report_embed.add_field(name="Args", value=args[1:])
         if kwargs:
             report_embed.add_field(name="KwArgs", value=kwargs)
 
-        if error is None:
+        if "error" in kwargs:
+            error = kwargs.pop("error")
+        else:
             error = sys.exc_info()[1]
         error_tb = TracebackException.from_exception(error)
         tb_format = "".join(error_tb.format())
