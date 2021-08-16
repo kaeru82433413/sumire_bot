@@ -1,12 +1,16 @@
+import os
 from os import path
 from typing import NamedTuple, Union
 import math
 import operator
 import itertools
 import functools
+import re
 from PIL import Image, ImageDraw, ImageFont
 
-@functools.cache # 同一な引数を渡されたら同一のVectorオブジェクトを返す
+
+POS_PATTERN = re.compile(r"([a-z])(\d{1,2})")
+
 class Vector(NamedTuple): # 二次元の座標やベクトルを表すクラス
     x: Union[int, float]
     y: Union[int, float]
@@ -29,6 +33,10 @@ class Vector(NamedTuple): # 二次元の座標やベクトルを表すクラス
         return self._operator(value, operator.mul)
     def __truediv__(self, value):
         return self._operator(value, operator.truediv)
+    def __floordiv__(self, value):
+        return self._operator(value, operator.floordiv)
+    def __mod__(self, value):
+        return self._operator(value, operator.mod)
     
     def _roperator(self, value, func):
         cls = type(self)
@@ -47,6 +55,10 @@ class Vector(NamedTuple): # 二次元の座標やベクトルを表すクラス
         return self._roperator(value, operator.mul)
     def __rtruediv__(self, value):
         return self._roperator(value, operator.truediv)
+    def __rfloordiv__(self, value):
+        return self._roperator(value, operator.floordiv)
+    def __rmod__(self, value):
+        return self._roperator(value, operator.mod)
 
     def __pos__(self):
         return self*+1
@@ -59,8 +71,24 @@ class Vector(NamedTuple): # 二次元の座標やベクトルを表すクラス
     def from_radian(cls, radian=math.pi/2):
         return cls(math.cos(radian), math.sin(radian))
     
+    @classmethod
+    def from_str(cls, string):
+        match = POS_PATTERN.fullmatch(string)
+        
+        if match is None:
+            return None
+        else:
+            x, y = match.groups()
+            return cls(ord(x)-ord("a"), int(y)-1)
+    
+    def to_str(self):
+        return f'{chr(ord("a")+self.x)}{self.y+1}'
+    
     def radian(self):
         return math.atan2(*self[::-1])
+    
+    def in_range(self, value):
+        return 0 <= value.x < self.x and 0 <= value.y < self.y
     
     def __repr__(self):
         return f"{type(self).__name__}{tuple(self)}"
@@ -69,8 +97,16 @@ class Vector(NamedTuple): # 二次元の座標やベクトルを表すクラス
         return str(tuple(self))
 
 
+DIRECTION4 = [Vector(*map(round, Vector.from_radian(math.pi*2/4*i))) for i in range(4)]
+DIRECTION8 = [Vector(*map(round, Vector.from_radian(math.pi*2/8*i))) for i in range(8)]
+
+if os.name == "posix": # Herokuだとファイル名だけで開けない
+    FONT_PATH = r"/app/.fonts/NotoSansMonoCJKjp-Regular.otf"
+else:
+    FONT_PATH = r"NotoSansMonoCJKjp-Regular.otf"
+
 @functools.cache
-def truetype(font=r"NotoSansMonoCJKjp-Regular.otf", size=32):
+def truetype(font=FONT_PATH, size=32):
     return ImageFont.truetype(font=font, size=size)
 
 FONT = truetype()
@@ -105,3 +141,19 @@ def open_image(file):
 
     draw = CustomDraw(image)
     return image, draw
+
+
+def field_image(field, func=None, background=(255, 255, 255)):
+    if not field or not field[0]:
+        raise ValueError("argument is empty")
+    field = [list(map(func, row)) for row in field]
+
+    width = field[0][0].width
+    height = field[0][0].height
+    result = new_image((width*len(field[0]), height*len(field)), background)[0]
+
+    for i, row in enumerate(field):
+        for j, value in enumerate(row):
+            result.paste(value, (width*j, height*i))
+    return result
+
