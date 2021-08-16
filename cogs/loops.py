@@ -14,7 +14,7 @@ class Loops(commands.Cog):
             await self.hourly(now)
 
     async def hourly(self, now):
-        if now.hour == 0 or True:
+        if now.hour == 0:
             await self.daily(now)
         if now.hour == 22:
             await self.daily22h(now)
