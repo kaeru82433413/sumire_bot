@@ -23,8 +23,7 @@ class Loops(commands.Cog):
         date = now.month, now.day
         if date in seichi_data.ACHIEVEMENTS:
             achievement = seichi_data.ACHIEVEMENTS[date]
-            #regular_notice_ch = self.bot.get_channel(820939592999108648)
-            regular_notice_ch = self.bot.get_channel(769174683227521064)
+            regular_notice_ch = self.bot.get_channel(820939592999108648)
             seichi_acv_ntc_role = self.bot.sumire_server.get_role(876675066329432114)
             embed = discord.Embed(title="整地鯖の記念日実績が解除できます", color=0xffff00)
 
@@ -39,8 +38,7 @@ class Loops(commands.Cog):
         date = now.month, now.day
         if date in seichi_data.ACHIEVEMENTS:
             achievement = seichi_data.ACHIEVEMENTS[date]
-            #regular_notice_ch = self.bot.get_channel(820939592999108648)
-            regular_notice_ch = self.bot.get_channel(769174683227521064)
+            regular_notice_ch = self.bot.get_channel(820939592999108648)
             seichi_acv_ntc_role = self.bot.sumire_server.get_role(876675066329432114)
             embed = discord.Embed(title="整地鯖記念日実績の解除をお忘れではありませんか？", color=0xffff00)
 
