@@ -89,7 +89,7 @@ class General(commands.Cog, name="general"):
         if value == 1:
             await ctx.send(" \* ".join(map(lambda x: f"{x[0]}^{x[1]}" if x[1]>1 else f"{x[0]}", factors)))
         else:
-            await ctx.send(f"1000,000より大きな素因数を含んでいるため計算できませんでした。({value}は素数でない可能性があります)\n" + " \* ".join(map(lambda x: f"{x[0]}^{x[1]}" if x[1]>1 else f"{x[0]}", factors+[(value, 1)])))
+            await ctx.send(f"1,000,000より大きな素因数を含んでいるため計算できませんでした。({value}は素数でない可能性があります)\n" + " \* ".join(map(lambda x: f"{x[0]}^{x[1]}" if x[1]>1 else f"{x[0]}", factors+[(value, 1)])))
 
     @math_cmd.command()
     async def gcd(self, ctx, *values: expression("natural")):
@@ -113,6 +113,7 @@ class General(commands.Cog, name="general"):
     async def ratio(self, ctx, *values: expression("fraction")):
         """
         引数の比を、互いに素である整数列で返します
+        小数などの指定も可能です
         [values]…
         """
 
