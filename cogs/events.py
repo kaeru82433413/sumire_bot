@@ -61,7 +61,7 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
-            pass
+            await self.suggest_command(ctx)
         elif isinstance(error, commands.ArgumentParsingError):
             await ctx.send("引数を解析できませんでした")
         elif isinstance(error, commands.MissingRequiredArgument):
@@ -96,6 +96,30 @@ class Events(commands.Cog):
             error_embed = discord.Embed(title="エラーが発生しました")
             error_embed.description = discord.utils.escape_markdown("".join(error_tb.format_exception_only())) + "開発者に報告しました。修正をお待ちください"
             await ctx.send(embed=error_embed)
+    
+
+    async def suggest_command(self, ctx):
+        candidates = []
+
+        for command in self.bot.walk_commands():
+            if ctx.invoked_with in {command.name, *command.aliases}:
+                candidates.append(command)
+        
+        if not candidates:
+            return
+        
+        suggest_embed = discord.Embed(title=f"{ctx.invoked_with}というコマンドはありません", description="もしかしたら以下のコマンドかも？")
+        
+        for command in candidates:
+            command_query = [command.name]
+            parent = command
+            while (parent := parent.parent) is not None:
+                command_query.append(parent.name)
+            command_query.reverse()
+
+            suggest_embed.add_field(name=ctx.prefix+" ".join(command_query), value=command.short_doc)
+
+        await ctx.send(embed=suggest_embed)
 
 def setup(bot):
     bot.add_cog(Events(bot))
