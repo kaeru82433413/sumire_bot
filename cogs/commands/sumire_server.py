@@ -147,6 +147,8 @@ class SumireServer(commands.Cog, name="sumire"):
         ページ数は自然数で指定してください
         [page]
         """
+        USERS_IN_PAGE = 10
+
         if page <= 0:
             await ctx.send(f"{page}は自然数ではありませんよ？")
             return
@@ -155,7 +157,7 @@ class SumireServer(commands.Cog, name="sumire"):
         members_data = ctx.bot.members_data(map(attrgetter("id"), members.values()), ("id", "point"))
 
         members_data = sorted(members_data, key=itemgetter(1), reverse=True)
-        max_page = (len(members_data)-1)//10 + 1 # 切り上げ除算
+        max_page = (len(members_data)-1)//USERS_IN_PAGE + 1 # 切り上げ除算
         if page > max_page:
             await ctx.send(f"{page}ページ目は存在しません")
             return
@@ -170,7 +172,7 @@ class SumireServer(commands.Cog, name="sumire"):
             else:
                 before = (point, i)
             ranking_rows.append(f"{i}位 {point}pt: {members[member_id].display_name}")
-        ranking_embed.description = "\n".join(ranking_rows[20*page-20:20*page])
+        ranking_embed.description = "\n".join(ranking_rows[USERS_IN_PAGE*page-USERS_IN_PAGE:USERS_IN_PAGE*page])
         await ctx.send(embed=ranking_embed)
     
     @commands.group(name="role", invoke_without_command=True)
