@@ -22,7 +22,7 @@ class Owner(commands.Cog, name="owner"):
         DBにクエリを送ります
         <query>
         """
-        res = self.bot.postgres(query)
+        res = self.bot.postgres(query, error_as_str=True)
         if res is None:
             await ctx.message.add_reaction("\N{White Heavy Check Mark}")
         elif isinstance(res, str):

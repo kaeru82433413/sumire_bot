@@ -54,21 +54,21 @@ class SumireBot(commands.Bot):
             error = kwargs.pop("error")
         else:
             error = sys.exc_info()[1]
-        error_tb = TracebackException.from_exception(error)
-        tb_format = "".join(error_tb.format())
+        tb_format = self.exception_format(error)
         if len(tb_format) <= 1000:
             report_embed.add_field(name="Traceback", value="```"+tb_format+"```", inline=False)
         traceback_file = discord.File(io.BytesIO(tb_format.encode()), filename="traceback.txt")
 
         await self.error_report_channel.send(embed=report_embed, file=traceback_file)
 
-    @staticmethod
-    def postgres(sql, *params):
+
+    def postgres(self, sql, *params, error_as_str=False):
         try:
             cur.execute(sql, params)
         except psycopg2.ProgrammingError as e:
-            tb = TracebackException.from_exception(e)
-            return "".join(tb.format_exception_only())
+            if error_as_str:
+                return self.exception_format(e)
+            raise e
 
         try:
             return cur.fetchall()
@@ -87,6 +87,12 @@ class SumireBot(commands.Bot):
             before = after - increase
         
         return f"{nickname}の所持ポイント：{before}→{after}"
+    
+
+    @staticmethod
+    def exception_format(exception: Exception):
+        tb = TracebackException.from_exception(exception)
+        return "".join(tb.format_exception_only())
     
 
     @staticmethod

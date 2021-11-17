@@ -3,7 +3,6 @@ import discord
 import os
 from datetime import datetime
 import asyncio
-import traceback
 import io
 
 class Events(commands.Cog):
@@ -75,7 +74,6 @@ class Events(commands.Cog):
         else:
 
             error = getattr(error, "original", error)
-            error_tb = traceback.TracebackException.from_exception(error)
 
             report_embed = discord.Embed(title="Error", color=0xffff00 if ctx.bot.local else 0xff0000, timestamp=ctx.message.created_at)
             if hasattr(ctx.guild, "name"):
@@ -86,15 +84,15 @@ class Events(commands.Cog):
             report_embed.add_field(name="Content", value=ctx.message.content)
             report_embed.add_field(name="MessageURL", value=ctx.message.jump_url)
             
-            tb_format = "".join(error_tb.format())
+            tb_format = ctx.bot.exception_format(error)
             if len(tb_format) <= 1000:
-                report_embed.add_field(name="Traceback", value="```"+tb_format+"```", inline=False)
+                report_embed.add_field(name="Traceback", value=f"```{tb_format}```", inline=False)
             traceback_file = discord.File(io.BytesIO(tb_format.encode()), filename="traceback.txt")
 
             await ctx.bot.error_report_channel.send(embed=report_embed, file=traceback_file)
 
             error_embed = discord.Embed(title="エラーが発生しました")
-            error_embed.description = discord.utils.escape_markdown("".join(error_tb.format_exception_only())) + "開発者に報告しました。修正をお待ちください"
+            error_embed.description = "開発者に報告しました。修正をお待ちください"
             await ctx.send(embed=error_embed)
     
 
