@@ -16,7 +16,7 @@ conn.autocommit = True
 cur = conn.cursor()
 
 def dynamic_prefix(bot, message):
-    if os.name=="nt": # ローカル起動時のデバッグ用
+    if bot.local: # ローカル起動時のデバッグ用
         return "?"
 
     prefixes = ["s/", "!"]
@@ -34,6 +34,7 @@ class SumireBot(commands.Bot):
                         "cogs.events", "cogs.loops", "jishaku"]
         for cog in cogs:
             self.load_extension(cog)
+        self.local = os.name=="nt"
     
     def run(self):
         TOKEN = os.getenv("sumire_bot_token")
@@ -41,7 +42,7 @@ class SumireBot(commands.Bot):
     
     async def on_error(self, *args, **kwargs):
         now_utc = datetime.datetime.now() - datetime.timedelta(hours=9)
-        report_embed = discord.Embed(title="Error", color=0xff0000, timestamp=now_utc)
+        report_embed = discord.Embed(title="Error", color=0xffff00 if self.local else 0xff0000, timestamp=now_utc)
 
         report_embed.add_field(name="Event", value=args[0])
         if len(args) > 1:

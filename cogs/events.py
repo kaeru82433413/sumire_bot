@@ -77,7 +77,7 @@ class Events(commands.Cog):
             error = getattr(error, "original", error)
             error_tb = traceback.TracebackException.from_exception(error)
 
-            report_embed = discord.Embed(title="Error", color=0xff0000, timestamp=ctx.message.created_at)
+            report_embed = discord.Embed(title="Error", color=0xffff00 if ctx.bot.local else 0xff0000, timestamp=ctx.message.created_at)
             if hasattr(ctx.guild, "name"):
                 report_embed.add_field(name="Guild", value=ctx.guild.name)
             if hasattr(ctx.channel, "name"):
