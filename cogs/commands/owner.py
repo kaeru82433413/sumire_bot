@@ -31,6 +31,54 @@ class Owner(commands.Cog, name="owner"):
             await ctx.send(res)
     
 
+    @commands.group(aliases=["ptm"], invoke_without_command=True)
+    async def pt_manage(self, ctx):
+        """
+        ポイントの管理をします
+        """
+        await ctx.send_help(ctx.command)
+
+
+    @pt_manage.command(name="set")
+    async def ptm_set(self, ctx, value: int, target: discord.Member=None):
+        """
+        対象のポイントを指定した値に変更します
+        <value> [target]
+        """
+        if target is None:
+            target = ctx.bot.sumire_server.get_member(ctx.author.id)
+            if target is None:
+                raise commands.BadArgument
+        
+        if target.guild != ctx.bot.sumire_server:
+            await ctx.send(f"{ctx.bot.sumire_server.name}のメンバーを指定してください")
+            return
+        
+        before_point, = ctx.bot.member_data(target.id, ("point",))
+        ctx.bot.postgres("update members set point = %s where id = %s", value, target.id)
+        await ctx.send(ctx.bot.point_transition(target.display_name, before=before_point, after=value))
+    
+
+    @pt_manage.command(name="add")
+    async def ptm_add(self, ctx, value: int, target: discord.Member=None):
+        """
+        対象のポイントに指定した値を加算します
+        <value> [target]
+        """
+        if target is None:
+            target = ctx.bot.sumire_server.get_member(ctx.author.id)
+            if target is None:
+                raise commands.BadArgument
+        
+        if target.guild != ctx.bot.sumire_server:
+            await ctx.send(f"{ctx.bot.sumire_server.name}のメンバーを指定してください")
+            return
+        
+        before_point, = ctx.bot.member_data(target.id, ("point",))
+        ctx.bot.postgres("update members set point += %s where id = %s", value, target.id)
+        await ctx.send(ctx.bot.point_transition(target.display_name, before=before_point, increase=value))
+    
+
     @commands.command()
     async def send(self, ctx, target: Union[discord.TextChannel, discord.DMChannel, discord.User, discord.Member], *, content=""):
         """
