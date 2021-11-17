@@ -5,16 +5,6 @@ import random
 import re
 from datetime import datetime, timedelta
 
-def _point_transition(nickname, before=None, after=None, increase=None):
-    if sum(map(lambda x: x is None, [before, after, increase])) != 1:
-        raise ValueError("キーワード引数を2つ指定してください")
-    
-    if after is None:
-        after = before + increase
-    elif before is None:
-        before = after - increase
-    
-    return f"{nickname}の所持ポイント：{before}→{after}"
 
 class SumireServer(commands.Cog, name="sumire"):
     """
@@ -75,7 +65,7 @@ class SumireServer(commands.Cog, name="sumire"):
         if last_daily < last_border: # 最後に受け取ったのが境目より前なら
             increase = random.randint(8, 16)
             self.bot.postgres("update members set point = point + %s, last_daily = %s where id = %s", increase, now, ctx.author.id)
-            await ctx.send(f"デイリーボーナスを受け取りました！{increase}ptゲット！\n{_point_transition(ctx.author.display_name, before=before_point, increase=increase)}")
+            await ctx.send(f"デイリーボーナスを受け取りました！{increase}ptゲット！\n{ctx.bot.point_transition(ctx.author.display_name, before=before_point, increase=increase)}")
 
         else:
             await ctx.send("今日の分は既に受け取っています")
@@ -102,7 +92,7 @@ class SumireServer(commands.Cog, name="sumire"):
         ctx.bot.postgres("update members set point = point + %s where id = %s", value*result, ctx.author.id)
         
         message = {-1: "残念！はずれ！", 1: "おめでとう！あたり！"}[result]
-        await ctx.send(f"{message}\n{_point_transition(ctx.author.display_name, before=before_point, increase=value*result)}")
+        await ctx.send(f"{message}\n{ctx.bot.point_transition(ctx.author.display_name, before=before_point, increase=value*result)}")
 
 
     @point_cmd.command(aliases=["giveaway"])
@@ -134,8 +124,8 @@ class SumireServer(commands.Cog, name="sumire"):
         ctx.bot.postgres("update members set point = point + %s where id = %s", point, target.id)
         await ctx.send(
             f"{target.display_name}に{point}ポイント譲渡しました\n"
-            f"{_point_transition(ctx.author.display_name, before=author_point, increase=-point)}\n"
-            f"{_point_transition(target.display_name, before=target_point, increase=point)}"
+            f"{ctx.bot.point_transition(ctx.author.display_name, before=author_point, increase=-point)}\n"
+            f"{ctx.bot.point_transition(target.display_name, before=target_point, increase=point)}"
         )
 
 

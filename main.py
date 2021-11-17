@@ -74,6 +74,20 @@ class SumireBot(commands.Bot):
         except psycopg2.ProgrammingError as e:
             return None # 結果がなければNoneを返す
     
+
+    @staticmethod
+    def point_transition(nickname, before=None, after=None, increase=None):
+        if [before, after, increase].count(None) != 1:
+            raise ValueError("キーワード引数を2つ指定してください")
+        
+        if after is None:
+            after = before + increase
+        elif before is None:
+            before = after - increase
+        
+        return f"{nickname}の所持ポイント：{before}→{after}"
+    
+
     @staticmethod
     async def attachments_to_files(message):
         files = []
