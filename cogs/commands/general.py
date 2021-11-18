@@ -61,8 +61,8 @@ class General(commands.Cog, name="general"):
         """
         await ctx.send_help(ctx.command)
     
-    @math_cmd.command(aliases=["pf", "primefactorization"])
-    async def prime_factorization(self, ctx, *, value: expression("natural")):
+    @math_cmd.command()
+    async def pf(self, ctx, *, value: expression("natural")):
         """
         素因数分解を行います
         2以上を整数を指定してください
