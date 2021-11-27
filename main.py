@@ -31,7 +31,7 @@ class SumireBot(commands.Bot):
         super().__init__(command_prefix=dynamic_prefix, intents=intents, help_command=SumireBotHelp())
         cogs = ["cogs.commands.general", "cogs.commands.sumire_server", "cogs.commands.seichi", "cogs.commands.test",
                         "cogs.commands.admin", "cogs.commands.owner",
-                        "cogs.events", "cogs.loops", "jishaku"]
+                        "cogs.events", "cogs.loops", "cogs.anti_spam", "jishaku"]
         for cog in cogs:
             self.load_extension(cog)
         self.local = os.name=="nt"
