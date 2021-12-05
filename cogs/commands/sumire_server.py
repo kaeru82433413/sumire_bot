@@ -162,7 +162,7 @@ class SumireServer(commands.Cog, name="sumire"):
             else:
                 before = (point, i)
             ranking_rows.append(f"{i}位 {point}pt: {members[member_id].display_name}")
-        ranking_embed.description = "\n".join(ranking_rows[USERS_IN_PAGE*page-USERS_IN_PAGE:USERS_IN_PAGE*page])
+        ranking_embed.description = discord.utils.escape_markdown("\n".join(ranking_rows[USERS_IN_PAGE*page-USERS_IN_PAGE:USERS_IN_PAGE*page]))
         await ctx.send(embed=ranking_embed)
     
     @commands.group(name="role", invoke_without_command=True)
